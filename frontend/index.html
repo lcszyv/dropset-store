@@ -356,6 +356,55 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 .aba-conteudo { display:none; }
 .aba-conteudo.active { display:block; }
 
+/* Estilos dos Itens do Pedido */
+.order-items {
+    margin: 10px 0 12px;
+    padding-left: 0;
+}
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #222;
+    font-size: 0.8rem;
+    color: #ccc;
+}
+.order-item:last-child { border-bottom: none; }
+.order-item-qty {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--red-light);
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Botão Comprar Novamente */
+.btn-reorder {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(220,38,38,0.15);
+    border: 1px solid var(--red);
+    color: var(--red-light);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.btn-reorder:hover {
+    background: var(--red);
+    color: #fff;
+}
+
 /* Ajuste Mobile */
 @media(max-width: 1024px) {
 .hero h1 { font-size: 2.8rem; }
@@ -833,7 +882,7 @@ async function carregarProdutos(busca, categoria, titulo) {
             });
         }, 100);
     } catch (erro) {
-        console.error('❌ Erro:', erro);
+        console.error(' Erro:', erro);
         document.getElementById('productGrid').innerHTML = '<p style="color:var(--gray);text-align:center;grid-column:1/-1;">⚠️ Erro ao carregar.</p>';
     }
 }
@@ -1069,7 +1118,7 @@ function removeItem(index) {
 
 async function finalizarCompraMP() {
     if (cart.length === 0) return alert("Carrinho vazio!");
-    showToast('Gerando pagamento... ⏳');
+    showToast('Gerando pagamento... ');
     
     const user = JSON.parse(localStorage.getItem('dropset_user')) || null;
     const total = cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
@@ -1165,7 +1214,7 @@ async function realizarLogin(e) {
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginSenha').value = '';
         } else { showToast(data.erro || 'Erro ❌'); }
-    } catch (erro) { showToast('Erro de conexão ❌'); }
+    } catch (erro) { showToast('Erro de conexão '); }
     finally { btn.textContent = 'Entrar'; btn.disabled = false; }
 }
 
@@ -1189,7 +1238,7 @@ async function realizarCadastro(e) {
             showToast('Conta criada! ');
             closeModals(); verificarSessao();
         } else { showToast(data.erro || 'Erro ❌'); }
-    } catch (erro) { showToast('Erro de conexão ❌'); }
+    } catch (erro) { showToast('Erro de conexão '); }
     finally { btn.textContent = 'Cadastrar'; btn.disabled = false; }
 }
 
@@ -1255,7 +1304,6 @@ async function carregarPedidos() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        // 🔐 Verifica se o token está válido
         if (!res.ok) {
             if (res.status === 401) {
                 container.innerHTML = '<p style="color:#777; text-align:center; padding:20px;">Sessão expirada. Faça login novamente.</p>';
@@ -1266,7 +1314,6 @@ async function carregarPedidos() {
 
         const pedidos = await res.json();
         
-        // ✅ AGORA: Se a lista estiver vazia, mostra mensagem amigável (NÃO é erro!)
         if (!pedidos || pedidos.length === 0) {
             container.innerHTML = `
                 <div style="text-align:center; padding:40px 20px; color:#777;">
@@ -1283,17 +1330,37 @@ async function carregarPedidos() {
             const data = new Date(p.created_at).toLocaleDateString('pt-BR');
             const statusCor = p.status === 'aprovado' ? '#10b981' : p.status === 'pendente' ? '#f59e0b' : '#ef4444';
             
-            //  Proteção contra erro de parse (jsonb vs string)
             const itens = typeof p.itens === 'string' ? JSON.parse(p.itens) : p.itens;
             
+            // Monta a lista de produtos
+            let itensHTML = '';
+            itens.forEach(item => {
+                const nomeCurto = item.nome.length > 25 ? item.nome.substring(0, 25) + '...' : item.nome;
+                itensHTML += `
+                    <div class="order-item">
+                        <span class="order-item-qty">${item.quantidade}x</span>
+                        <span>${nomeCurto}</span>
+                    </div>
+                `;
+            });
+
             html += `
             <div style="background:#111; padding:12px; border-radius:8px; margin-bottom:10px; border-left:3px solid ${statusCor};">
                 <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <span style="font-size:0.8rem; color:#777;">#${p.id} • ${data}</span>
                     <span style="font-size:0.75rem; font-weight:700; color:${statusCor}; text-transform:uppercase;">${p.status}</span>
                 </div>
-                <div style="font-size:0.85rem; margin-bottom:5px;">${itens.length} item(ns)</div>
-                <div style="font-weight:700; color:var(--red);">R$ ${Number(p.total).toFixed(2).replace('.', ',')}</div>
+                
+                <div class="order-items">
+                    ${itensHTML}
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <span style="font-weight:700; color:var(--red);">R$ ${Number(p.total).toFixed(2).replace('.', ',')}</span>
+                    <button class="btn-reorder" onclick='reorderItems(${JSON.stringify(itens).replace(/'/g, "&#39;")})'>
+                        <i class="fas fa-cart-plus"></i> Comprar Novamente
+                    </button>
+                </div>
             </div>`;
         });
         container.innerHTML = html;
@@ -1301,6 +1368,27 @@ async function carregarPedidos() {
         console.error('Erro ao carregar pedidos:', erro);
         container.innerHTML = '<p style="color:#ef4444; text-align:center; padding:20px;">Erro de conexão. Tente novamente mais tarde.</p>';
     }
+}
+
+// Função para recuperar itens do pedido para o carrinho
+function reorderItems(itens) {
+    itens.forEach(item => {
+        const existing = cart.find(c => c.nome === item.nome);
+        if (existing) {
+            existing.quantidade += item.quantidade;
+        } else {
+            cart.push({
+                nome: item.nome,
+                preco: Number(item.preco),
+                img: item.img || '',
+                quantidade: item.quantidade
+            });
+        }
+    });
+    saveCart();
+    updateCartIcon();
+    showToast('Itens adicionados ao carrinho! 🛒');
+    toggleCart(); // Abre o carrinho automaticamente
 }
 </script>
 </body>
