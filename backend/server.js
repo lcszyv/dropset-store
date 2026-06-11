@@ -1,122 +1,86 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-const { MercadoPagoConfig, Preference } = require('mercadopago');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const mercadopago = require('mercadopago');
+require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Configuração do Mercado Pago com Sandbox forçado
+mercadopago.configure({
+    access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+    sandbox: true // Força ambiente de testes
+});
+
+// Configuração do banco de dados Supabase
+const pool = new Pool({
+    connectionString: process.env.SUPABASE_DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+// Middlewares
+app.use(cors({
+    origin: ['https://dropsetnutri.netlify.app', 'http://localhost:3000', 'http://localhost:5500'],
+    credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// CORS manual para garantir
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') return res.sendStatus(200);
-    next();
-});
-
-// Configurações
-const mpClient = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
-const preference = new Preference(mpClient);
-const pool = new Pool({ connectionString: process.env.SUPABASE_DATABASE_URL });
-const JWT_SECRET = process.env.JWT_SECRET || 'dropset_secret_key_2025';
-
-// Conectar ao banco
-async function iniciar() {
+// Teste de conexão
+app.get('/api/test', async (req, res) => {
     try {
-        await pool.connect();
-        console.log('✅ Banco conectado!');
-    } catch (err) {
-        console.error('❌ Erro no banco:', err.message);
-    }
-}
-
-// Middleware de autenticação
-function verificarToken(req, res, next) {
-    const token = req.headers['authorization']?.split(' ')[1];
-    if (!token) return res.status(401).json({ erro: 'Token não fornecido' });
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-        if (err) return res.status(403).json({ erro: 'Token inválido' });
-        req.usuario = decoded;
-        next();
-    });
-}
-
-// ================= ROTAS =================
-
-// Status
-app.get('/api/status', (req, res) => {
-    res.json({ status: '✅ Servidor rodando!', banco: 'Conectado' });
-});
-
-// Listar produtos
-app.get('/api/produtos', async (req, res) => {
-    try {
-        const resultado = await pool.query('SELECT * FROM produtos ORDER BY id DESC');
-        res.json(resultado.rows);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
+        const client = await pool.connect();
+        await client.query('SELECT NOW()');
+        client.release();
+        res.json({ status: 'OK', message: 'Servidor e banco conectados!' });
+    } catch (error) {
+        res.status(500).json({ status: 'ERROR', message: error.message });
     }
 });
 
-// Criar produto
-app.post('/api/produtos', async (req, res) => {
-    try {
-        const { nome, preco, descricao, categoria, imagem_url, estoque } = req.body;
-        const resultado = await pool.query(
-            `INSERT INTO produtos (nome, preco, descricao, categoria, imagem_url, estoque) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [nome, preco, descricao, categoria, imagem_url, estoque]
-        );
-        res.status(201).json(resultado.rows[0]);
-    } catch (erro) {
-        res.status(500).json({ erro: erro.message });
-    }
-});
+// ==================== AUTENTICAÇÃO ====================
 
-// ✅ REGISTRO DE USUÁRIO (CADASTRO) - ROTA PRINCIPAL
+// Registro
 app.post('/api/registro', async (req, res) => {
-    console.log('📥 Recebido registro:', req.body.email); // Debug
-    
     try {
-        const { nome, email, senha, telefone } = req.body;
+        const { nome, email, telefone, senha } = req.body;
         
         if (!nome || !email || !senha) {
             return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
         }
+
+        const hashedSenha = await bcrypt.hash(senha, 10);
         
-        // Verificar email duplicado
-        const emailExistente = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
-        if (emailExistente.rows.length > 0) {
-            return res.status(409).json({ erro: 'Este email já está cadastrado' });
-        }
-        
-        // Criptografar senha
-        const saltRounds = 10;
-        const senhaHash = await bcrypt.hash(senha, saltRounds);
-        
-        // Inserir no banco
-        const resultado = await pool.query(
-            `INSERT INTO usuarios (nome, email, senha_hash, telefone) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at`,
-            [nome, email, senhaHash, telefone || null]
+        const result = await pool.query(
+            'INSERT INTO usuarios (nome, email, telefone, senha) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at',
+            [nome, email, telefone || null, hashedSenha]
         );
-        
-        const usuario = resultado.rows[0];
-        
-        // Gerar token JWT
-        const token = jwt.sign({ id: usuario.id, email: usuario.email }, JWT_SECRET, { expiresIn: '7d' });
-        
-        console.log(`✅ Usuário registrado: ${usuario.email}`);
-        res.status(201).json({ mensagem: 'Usuário registrado!', usuario, token });
-        
-    } catch (erro) {
-        console.error('❌ ERRO NO REGISTRO:', erro.message);
-        res.status(500).json({ erro: 'Erro interno ao registrar usuário' });
+
+        const usuario = result.rows[0];
+        const token = jwt.sign(
+            { id: usuario.id, email: usuario.email },
+            process.env.JWT_SECRET || 'dropset2025seguro!',
+            { expiresIn: '7d' }
+        );
+
+        console.log('✅ Registro realizado:', email);
+        res.status(201).json({ 
+            mensagem: 'Usuário criado com sucesso',
+            usuario,
+            token
+        });
+    } catch (error) {
+        console.error('❌ ERRO NO REGISTRO:', error.message);
+        if (error.code === '23505') {
+            res.status(409).json({ erro: 'Email já cadastrado' });
+        } else {
+            res.status(500).json({ erro: 'Erro interno ao registrar' });
+        }
     }
 });
 
@@ -124,98 +88,212 @@ app.post('/api/registro', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
-        if (!email || !senha) return res.status(400).json({ erro: 'Email e senha obrigatórios' });
-        
-        const resultado = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
-        if (resultado.rows.length === 0) return res.status(401).json({ erro: 'Email ou senha inválidos' });
-        
-        const usuario = resultado.rows[0];
-        const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
-        if (!senhaValida) return res.status(401).json({ erro: 'Email ou senha inválidos' });
-        
-        const token = jwt.sign({ id: usuario.id, email: usuario.email }, JWT_SECRET, { expiresIn: '7d' });
-        
-        res.json({ mensagem: 'Login realizado!', usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, telefone: usuario.telefone }, token });
-    } catch (erro) {
-        console.error('❌ Erro no login:', erro.message);
-        res.status(500).json({ erro: 'Erro ao fazer login' });
-    }
-});
 
-// Perfil (protegido)
-app.get('/api/perfil', verificarToken, async (req, res) => {
-    try {
-        const resultado = await pool.query('SELECT id, nome, email, telefone, created_at FROM usuarios WHERE id = $1', [req.usuario.id]);
-        if (resultado.rows.length === 0) return res.status(404).json({ erro: 'Usuário não encontrado' });
-        res.json(resultado.rows[0]);
-    } catch (erro) {
-        res.status(500).json({ erro: 'Erro ao buscar perfil' });
-    }
-});
+        if (!email || !senha) {
+            return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+        }
 
-// Pagamento - Carrinho Múltiplo
-app.post('/api/pagamento-multiplo', async (req, res) => {
-    try {
-        const { cart, usuario } = req.body;
-        const items = cart.map(item => ({
-            title: item.nome.substring(0, 100),
-            unit_price: Number(item.preco),
-            quantity: Number(item.quantidade),
-            currency_id: 'BRL'
-        }));
+        const result = await pool.query(
+            'SELECT id, nome, email, telefone, senha, created_at FROM usuarios WHERE email = $1',
+            [email]
+        );
 
-        const body = {
-            items: items,
-            back_urls: { success: 'http://localhost:3000', failure: 'http://localhost:3000', pending: 'http://localhost:3000' },
-            ...(usuario && { payer: { name: usuario.nome?.split(' ')[0], surname: usuario.nome?.split(' ').slice(1).join(' '), email: usuario.email } })
-        };
+        if (result.rows.length === 0) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
 
-        const result = await preference.create({ body });
-        res.json({ link: result.init_point });
+        const usuario = result.rows[0];
+        const senhaValida = await bcrypt.compare(senha, usuario.senha);
+
+        if (!senhaValida) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
+
+        const token = jwt.sign(
+            { id: usuario.id, email: usuario.email },
+            process.env.JWT_SECRET || 'dropset2025seguro!',
+            { expiresIn: '7d' }
+        );
+
+        delete usuario.senha;
+
+        console.log('✅ Login realizado:', email);
+        res.json({ 
+            mensagem: 'Login realizado com sucesso',
+            usuario,
+            token
+        });
     } catch (error) {
-        console.error('❌ ERRO MP:', error.message);
-        res.status(500).json({ erro: error.message });
-    }
-});
-// Salvar pedido no banco
-app.post('/api/pedidos', verificarToken, async (req, res) => {
-    try {
-        const { carrinho, total, pagamento_id } = req.body;
-        
-        const resultado = await pool.query(
-            `INSERT INTO pedidos (usuario_id, itens, total, status, pagamento_id) 
-             VALUES ($1, $2, $3, 'pendente', $4) RETURNING id, created_at`,
-            [req.usuario.id, JSON.stringify(carrinho), total, pagamento_id || null]
-        );
-        
-        res.status(201).json({ mensagem: 'Pedido salvo!', pedido_id: resultado.rows[0].id });
-    } catch (erro) {
-        console.error('❌ Erro ao salvar pedido:', erro.message);
-        res.status(500).json({ erro: 'Erro ao salvar pedido' });
+        console.error('❌ ERRO NO LOGIN:', error.message);
+        res.status(500).json({ erro: 'Erro interno ao fazer login' });
     }
 });
 
-// Buscar pedidos do usuário
-app.get('/api/meus-pedidos', verificarToken, async (req, res) => {
+// Middleware de autenticação
+function autenticarToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ erro: 'Token não fornecido' });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET || 'dropset2025seguro!', (err, usuario) => {
+        if (err) {
+            return res.status(403).json({ erro: 'Token inválido ou expirado' });
+        }
+        req.usuario = usuario;
+        next();
+    });
+}
+
+// ==================== PRODUTOS ====================
+
+// Listar produtos
+app.get('/api/produtos', async (req, res) => {
     try {
-        const resultado = await pool.query(
-            `SELECT id, itens, total, status, pagamento_id, created_at 
-             FROM pedidos 
-             WHERE usuario_id = $1 
-             ORDER BY created_at DESC`,
-            [req.usuario.id]
+        const { q, categoria } = req.query;
+        
+        let query = 'SELECT * FROM produtos WHERE estoque > 0';
+        const values = [];
+
+        if (categoria) {
+            query += ' AND categoria = $1';
+            values.push(categoria);
+        }
+
+        if (q) {
+            query += ` AND (nome ILIKE $${values.length + 1} OR descricao ILIKE $${values.length + 1})`;
+            values.push(`%${q}%`);
+        }
+
+        query += ' ORDER BY nome ASC';
+
+        const result = await pool.query(query, values);
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('❌ ERRO AO BUSCAR PRODUTOS:', error.message);
+        res.status(500).json({ erro: 'Erro ao buscar produtos' });
+    }
+});
+
+// ==================== PEDIDOS ====================
+
+// Criar pedido
+app.post('/api/pedidos', autenticarToken, async (req, res) => {
+    try {
+        const { carrinho, total } = req.body;
+        const userId = req.usuario.id;
+
+        const result = await pool.query(
+            'INSERT INTO pedidos (user_id, itens, total, status) VALUES ($1, $2, $3, $4) RETURNING *',
+            [userId, JSON.stringify(carrinho), total, 'pendente']
         );
-        res.json(resultado.rows);
-    } catch (erro) {
-        console.error('❌ Erro ao buscar pedidos:', erro.message);
+
+        console.log('📦 Pedido criado:', result.rows[0].id);
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('❌ ERRO AO CRIAR PEDIDO:', error.message);
+        res.status(500).json({ erro: 'Erro ao criar pedido' });
+    }
+});
+
+// Meus pedidos
+app.get('/api/meus-pedidos', autenticarToken, async (req, res) => {
+    try {
+        const userId = req.usuario.id;
+        
+        const result = await pool.query(
+            'SELECT * FROM pedidos WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('❌ ERRO AO BUSCAR PEDIDOS:', error.message);
         res.status(500).json({ erro: 'Erro ao buscar pedidos' });
     }
 });
-// Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor DropSet ativo na porta ${PORT}`);
-    console.log(`🔐 Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo`);
+
+// ==================== PAGAMENTO MERCADO PAGO ====================
+
+// Criar preferência de pagamento
+app.post('/api/pagamento-multiplo', async (req, res) => {
+    try {
+        const { cart } = req.body;
+        
+        console.log('💳 Recebido pedido de pagamento:', cart);
+
+        if (!cart || cart.length === 0) {
+            return res.status(400).json({ erro: 'Carrinho vazio' });
+        }
+
+        const items = cart.map(item => ({
+            title: item.nome,
+            quantity: item.quantidade || 1,
+            unit_price: Number(item.preco),
+            currency_id: 'BRL'
+        }));
+
+        const preference = {
+            items: items,
+            back_urls: {
+                success: `${process.env.FRONTEND_URL || 'https://dropsetnutri.netlify.app'}/sucesso`,
+                failure: `${process.env.FRONTEND_URL || 'https://dropsetnutri.netlify.app'}/falha`,
+                pending: `${process.env.FRONTEND_URL || 'https://dropsetnutri.netlify.app'}/pendente`
+            },
+            auto_return: 'approved'
+        };
+
+        const response = await mercadopago.preferences.create(preference);
+        
+        console.log('✅ Pagamento gerado:', response.body.id);
+        res.json({ 
+            id: response.body.id,
+            link: response.body.init_point
+        });
+    } catch (error) {
+        console.error('❌ ERRO MP:', error.message);
+        res.status(500).json({ 
+            erro: 'Erro ao gerar pagamento',
+            details: error.message
+        });
+    }
 });
 
-iniciar();
+// Webhook do Mercado Pago
+app.post('/api/webhook-mp', async (req, res) => {
+    try {
+        const { data, type } = req.body;
+
+        if (type === 'payment') {
+            const payment = await mercadopago.payment.get(data.id);
+            const paymentData = payment.body;
+            
+            const status = paymentData.status; // approved, pending, rejected
+            
+            await pool.query(
+                'UPDATE pedidos SET status = $1, pagamento_id = $2 WHERE pagamento_id = $3',
+                [status, paymentData.id, paymentData.order_id]
+            );
+
+            console.log(`💰 Pagamento ${paymentData.id} atualizado para: ${status}`);
+        }
+
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('❌ ERRO WEBHOOK:', error.message);
+        res.status(500).send('Erro');
+    }
+});
+
+// ==================== INICIALIZAÇÃO ====================
+
+app.listen(PORT, () => {
+    console.log('🔥 Servidor DropSet ativo na porta', PORT);
+    console.log('📡 Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo');
+    console.log('🏦 Mercado Pago Sandbox:', mercadopago.config.sandbox ? '✅ ATIVO' : '❌ INATIVO');
+});
+
+module.exports = app;
