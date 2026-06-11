@@ -420,7 +420,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 
 <header id="mainHeader">
 <div class="container header-main">
-<a href="#" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a>
+<a href="index.html" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a>
 <div class="search-bar">
     <input type="text" id="searchInput" placeholder="Buscar produtos, marcas, categorias..." onkeypress="if(event.key==='Enter')buscarProdutos()">
     <button onclick="buscarProdutos()"><i class="fas fa-search"></i></button>
@@ -442,15 +442,15 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 
 <nav class="nav-bar" id="navBar">
 <div class="container"><ul class="nav-list">
-<li><a href="#" class="nav-link active" onclick="resetFilters()"><i class="fas fa-home"></i> Início</a></li>
-<li><a href="#" class="nav-link" data-categoria="Proteínas">Proteínas <span class="badge-hot">HOT</span></a></li>
-<li><a href="#" class="nav-link" data-categoria="Creatina">Creatina</a></li>
-<li><a href="#" class="nav-link" data-categoria="Pré-Treino">Pré-Treino</a></li>
-<li><a href="#" class="nav-link" data-categoria="Mass Gainer">Mass Gainer</a></li>
-<li><a href="#" class="nav-link" data-categoria="Aminoácidos">Aminoácidos</a></li>
-<li><a href="#" class="nav-link" data-categoria="Vitaminas">Vitaminas</a></li>
-<li><a href="#" class="nav-link" data-categoria="Roupas">Roupas</a></li>
-<li><a href="#" class="nav-link" data-categoria="Ofertas" style="color:var(--red)">Ofertas <span class="badge-hot">-50%</span></a></li>
+    <li><a href="index.html" class="nav-link active"><i class="fas fa-home"></i> Início</a></li>
+    <li><a href="?cat=Proteínas" class="nav-link">Proteínas <span class="badge-hot">HOT</span></a></li>
+    <li><a href="?cat=Creatina" class="nav-link">Creatina</a></li>
+    <li><a href="?cat=Pré-Treino" class="nav-link">Pré-Treino</a></li>
+    <li><a href="?cat=Mass Gainer" class="nav-link">Mass Gainer</a></li>
+    <li><a href="?cat=Aminoácidos" class="nav-link">Aminoácidos</a></li>
+    <li><a href="?cat=Vitaminas" class="nav-link">Vitaminas</a></li>
+    <li><a href="?cat=Roupas" class="nav-link">Roupas</a></li>
+    <li><a href="?cat=Ofertas" class="nav-link" style="color:var(--red)">Ofertas <span class="badge-hot">-50%</span></a></li>
 </ul></div>
 </nav>
 
@@ -492,19 +492,18 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </section>
 
 <section class="products-section container">
-<div class="section-header reveal"><h2 class="section-title">PRODUTOS EM <span>DESTAQUE</span></h2><a href="#" class="see-all">Ver todos <i class="fas fa-arrow-right"></i></a></div>
-<div class="product-grid" id="productGrid">
-</div>
+<div class="section-header reveal"><h2 class="section-title" id="mainTitle">PRODUTOS EM <span>DESTAQUE</span></h2><a href="#" class="see-all">Ver todos <i class="fas fa-arrow-right"></i></a></div>
+<div class="product-grid" id="productGrid"></div>
 </section>
 
-<section class="container reveal">
+<section class="container reveal" id="flashSaleSection">
 <div class="dual-banners">
 <div class="banner-box muscle"><div class="banner-text"><h3>CRIANDO <span>MÚSCULO</span></h3><p>Os melhores suplementos para ganho de massa.</p><span class="promo-tag red">Até 40% OFF</span></div><i class="fas fa-dumbbell banner-icon"></i></div>
 <div class="banner-box fatburn"><div class="banner-text"><h3>QUEIMA DE <span style="color:#3b82f6">GORDURA</span></h3><p>Termogênicos de alta performance.</p><span class="promo-tag blue">Leve 3 Pague 2</span></div><i class="fas fa-fire banner-icon"></i></div>
 </div>
 </section>
 
-<section class="container reveal">
+<section class="container reveal" id="flashGridSection">
 <div class="flash-sale">
 <div class="flash-header">
 <h2 class="flash-title"><i class="fas fa-bolt"></i> OFERTA <span style="color:var(--red)">RELÂMPAGO</span></h2>
@@ -514,7 +513,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </div>
 </section>
 
-<section class="container reveal">
+<section class="container reveal" id="productMonthSection">
 <div class="product-month">
 <div class="pm-image"><img src="https://image.qwenlm.ai/public_source/1bd6aa16-3fcf-428f-a8c8-e7222b71b1a9/1706b3633-5417-4628-83e1-9e4340cdc00f.png" alt="PowerCharge"></div>
 <div class="pm-content">
@@ -533,7 +532,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </div>
 </section>
 
-<section class="products-section container">
+<section class="products-section container" id="bestsellersSection">
 <div class="section-header reveal"><h2 class="section-title">MAIS <span>VENDIDOS</span></h2><a href="#" class="see-all">Ver todos <i class="fas fa-arrow-right"></i></a></div>
 <div class="product-grid" id="bestsellersGrid"></div>
 </section>
@@ -547,7 +546,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <footer>
 <div class="container">
 <div class="footer-grid">
-<div class="footer-col footer-about"><a href="#" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a><p>A Dropset é a sua loja de suplementos.</p><div class="footer-social"><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-youtube"></i></a><a href="#"><i class="fab fa-tiktok"></i></a></div></div>
+<div class="footer-col footer-about"><a href="index.html" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a><p>A Dropset é a sua loja de suplementos.</p><div class="footer-social"><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-youtube"></i></a><a href="#"><i class="fab fa-tiktok"></i></a></div></div>
 <div class="footer-col"><h4>Institucional</h4><ul>
     <li onclick="window.location.href='institucional.html?p=sobre'" style="cursor:pointer">Sobre Nós</li>
     <li onclick="window.location.href='institucional.html?p=lojas'" style="cursor:pointer">Nossas Lojas</li>
@@ -644,7 +643,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
         <div class="modal-header"><h3 id="perfilTitulo">Meu Perfil</h3><button class="close-modal" onclick="fecharPerfil()">&times;</button></div>
         <div style="display:flex; gap:10px; border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px;">
             <button class="tab-btn active" onclick="mudarAba('dados', this)">👤 Dados</button>
-            <button class="tab-btn" onclick="mudarAba('carrinho', this)">🛒 Carrinho</button>
+            <button class="tab-btn" onclick="mudarAba('carrinho', this)"> Carrinho</button>
             <button class="tab-btn" onclick="mudarAba('pedidos', this)">📦 Pedidos</button>
         </div>
         <div id="aba-dados" class="aba-conteudo active">
@@ -807,18 +806,25 @@ async function carregarProdutos(busca, categoria, titulo) {
         grid.innerHTML = disponiveis.slice(0, 8).map(criarCard).join('');
         
         if (titulo) {
-            document.querySelector('.section-title').innerHTML = titulo;
+            document.getElementById('mainTitle').innerHTML = titulo;
         }
 
         if (!busca && !categoria) {
+            document.getElementById('flashSaleSection').style.display = 'block';
+            document.getElementById('flashGridSection').style.display = 'block';
+            document.getElementById('productMonthSection').style.display = 'block';
+            document.getElementById('bestsellersSection').style.display = 'block';
+            
             const flashGrid = document.getElementById('flashGrid');
             flashGrid.innerHTML = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4).map(criarCard).join('');
             
             const bestGrid = document.getElementById('bestsellersGrid');
             bestGrid.innerHTML = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4).map(criarCard).join('');
         } else {
-             document.getElementById('flashGrid').innerHTML = '';
-             document.getElementById('bestsellersGrid').innerHTML = '';
+             document.getElementById('flashSaleSection').style.display = 'none';
+             document.getElementById('flashGridSection').style.display = 'none';
+             document.getElementById('productMonthSection').style.display = 'none';
+             document.getElementById('bestsellersSection').style.display = 'none';
         }
 
         setTimeout(() => {
@@ -832,21 +838,42 @@ async function carregarProdutos(busca, categoria, titulo) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    verificarSessao();
-    carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
-});
-
-// ==================== BUSCA CORRIGIDA ====================
+// ==================== INICIALIZAÇÃO E FILTROS ====================
 const searchInput = document.getElementById('searchInput');
 let searchTimer;
 
+function filterByCategory(categoria) {
+    // Atualiza a URL sem recarregar para ficar bonito
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('cat', categoria);
+    window.history.pushState({}, '', newUrl);
+
+    carregarProdutos(null, categoria, `Categoria: <span>${categoria}</span>`);
+    
+    // Rola até os produtos
+    const grid = document.getElementById('productGrid');
+    if(grid) {
+        window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
+    }
+}
+
+function resetFilters() {
+    window.location.href = 'index.html';
+}
+
+// Busca por Input
 searchInput.addEventListener('input', (e) => {
     clearTimeout(searchTimer);
     const termo = e.target.value.trim();
     
     if (termo.length === 0) {
-        carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+        // Se limpar a busca, volta ao estado inicial (ou categoria se houver)
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('cat')) {
+             filterByCategory(params.get('cat'));
+        } else {
+             carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+        }
         return;
     }
     
@@ -868,11 +895,15 @@ searchInput.addEventListener('input', (e) => {
                 </div>`;
             } else {
                 grid.innerHTML = disponiveis.map(criarCard).join('');
-                document.querySelector('.section-title').innerHTML = `Resultados para: "<span>${termo}</span>" (${disponiveis.length} produtos)`;
+                document.getElementById('mainTitle').innerHTML = `Resultados para: "<span>${termo}</span>" (${disponiveis.length} produtos)`;
             }
             
             document.getElementById('flashGrid').innerHTML = '';
             document.getElementById('bestsellersGrid').innerHTML = '';
+            document.getElementById('flashSaleSection').style.display = 'none';
+            document.getElementById('flashGridSection').style.display = 'none';
+            document.getElementById('productMonthSection').style.display = 'none';
+            document.getElementById('bestsellersSection').style.display = 'none';
             
             setTimeout(() => {
                 document.querySelectorAll('.product-grid .reveal').forEach(el => {
@@ -923,7 +954,7 @@ function buscarProdutos() {
                     </div>`;
             } else {
                 grid.innerHTML = disponiveis.map(criarCard).join('');
-                document.querySelector('.section-title').innerHTML = `
+                document.getElementById('mainTitle').innerHTML = `
                     Resultados para: "<span>${termo}</span>" 
                     <span style="font-size: 1rem; color: var(--gray); font-weight: 400;">
                         (${disponiveis.length} produto${disponiveis.length !== 1 ? 's' : ''})
@@ -933,6 +964,10 @@ function buscarProdutos() {
             
             document.getElementById('flashGrid').innerHTML = '';
             document.getElementById('bestsellersGrid').innerHTML = '';
+            document.getElementById('flashSaleSection').style.display = 'none';
+            document.getElementById('flashGridSection').style.display = 'none';
+            document.getElementById('productMonthSection').style.display = 'none';
+            document.getElementById('bestsellersSection').style.display = 'none';
             
             setTimeout(() => {
                 document.querySelectorAll('.product-grid .reveal').forEach(el => {
@@ -947,11 +982,6 @@ function buscarProdutos() {
     }, 300);
 }
 
-function filterByCategory(categoria) {
-    carregarProdutos(null, categoria, `Categoria: <span>${categoria}</span>`);
-    window.scrollTo({ top: document.getElementById('productGrid').offsetTop - 100, behavior: 'smooth' });
-}
-
 document.querySelectorAll('.nav-link[data-categoria]').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -960,10 +990,20 @@ document.querySelectorAll('.nav-link[data-categoria]').forEach(link => {
     });
 });
 
-function resetFilters() {
-    searchInput.value = '';
-    carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
-}
+// Carregar ao iniciar a página
+document.addEventListener('DOMContentLoaded', () => {
+    verificarSessao();
+    
+    // Verifica se veio de um link de categoria (?cat=...)
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get('cat');
+    
+    if (catParam) {
+        filterByCategory(decodeURIComponent(catParam));
+    } else {
+        carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+    }
+});
 
 let cart = JSON.parse(localStorage.getItem('dropset_cart')) || [];
 updateCartIcon();
@@ -1146,7 +1186,7 @@ async function realizarCadastro(e) {
         if (res.ok) {
             localStorage.setItem('dropset_token', data.token);
             localStorage.setItem('dropset_user', JSON.stringify(data.usuario));
-            showToast('Conta criada! 🎉');
+            showToast('Conta criada! ');
             closeModals(); verificarSessao();
         } else { showToast(data.erro || 'Erro ❌'); }
     } catch (erro) { showToast('Erro de conexão ❌'); }
