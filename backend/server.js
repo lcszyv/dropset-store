@@ -3,16 +3,22 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const mercadopago = require('mercadopago');
+const { MercadoPagoConfig, Preference } = require('mercadopago');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração do Mercado Pago com Sandbox
-mercadopago.configure({
-    access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-    sandbox: true
+// Configuração do Mercado Pago (NOVA API)
+const client = new MercadoPagoConfig({ 
+    accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
+    options: {
+        timeout: 5000,
+        idempotencyKey: 'abc',
+        headers: {
+            'X-Platform-Id': 'backend'
+        }
+    }
 });
 
 // Configuração do banco de dados Supabase
@@ -225,7 +231,7 @@ app.get('/api/meus-pedidos', autenticarToken, async (req, res) => {
 
 // ==================== PAGAMENTO MERCADO PAGO ====================
 
-// Criar preferência de pagamento
+// Criar preferência de pagamento (NOVA API)
 app.post('/api/pagamento-multiplo', async (req, res) => {
     try {
         const { cart } = req.body;
@@ -243,7 +249,7 @@ app.post('/api/pagamento-multiplo', async (req, res) => {
             currency_id: 'BRL'
         }));
 
-        const preference = {
+        const body = {
             items: items,
             back_urls: {
                 success: `${process.env.FRONTEND_URL || 'https://dropsetnutri.netlify.app'}/sucesso`,
@@ -253,12 +259,13 @@ app.post('/api/pagamento-multiplo', async (req, res) => {
             auto_return: 'approved'
         };
 
-        const response = await mercadopago.preferences.create(preference);
+        const preference = new Preference(client);
+        const response = await preference.create({ body });
         
-        console.log('✅ Pagamento gerado:', response.body.id);
+        console.log('✅ Pagamento gerado:', response.id);
         res.json({ 
-            id: response.body.id,
-            link: response.body.init_point
+            id: response.id,
+            link: response.init_point
         });
     } catch (error) {
         console.error('❌ ERRO MP:', error.message);
@@ -299,8 +306,8 @@ app.post('/api/webhook-mp', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log('🔥 Servidor DropSet ativo na porta', PORT);
-    console.log(' Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo');
-    console.log(' Mercado Pago Sandbox:', mercadopago.config.sandbox ? '✅ ATIVO' : '❌ INATIVO');
+    console.log('📡 Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo');
+    console.log('🏦 Mercado Pago configurado com nova API');
 });
 
 module.exports = app;
