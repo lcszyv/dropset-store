@@ -546,10 +546,56 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <div class="container">
 <div class="footer-grid">
 <div class="footer-col footer-about"><a href="#" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a><p>A Dropset é a sua loja de suplementos.</p><div class="footer-social"><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-youtube"></i></a><a href="#"><i class="fab fa-tiktok"></i></a></div></div>
-<div class="footer-col"><h4>Institucional</h4><ul><li>Sobre Nós</li><li>Nossas Lojas</li><li>Trabalhe Conosco</li><li>Blog</li></ul></div>
-<div class="footer-col"><h4>Ajuda</h4><ul><li>Central de Ajuda</li><li>Como Comprar</li><li>Pagamento</li><li>Entrega</li></ul></div>
-<div class="footer-col"><h4>Categorias</h4><ul><li>Proteínas</li><li>Creatina</li><li>Pré-Treino</li><li>Vitaminas</li></ul></div>
-<div class="footer-col"><h4>Contato</h4><ul><li><i class="fas fa-map-marker-alt" style="color:var(--red);margin-right:8px;"></i> Av. Paulista, 1000 - SP</li><li><i class="fas fa-phone" style="color:var(--red);margin-right:8px;"></i> (11) 9999-8888</li><li><i class="fas fa-envelope" style="color:var(--red);margin-right:8px;"></i> contato@dropset.com.br</li></ul></div>
+<div class="footer-col"><h4>Institucional</h4><ul>
+    <li onclick="window.location.href='institucional.html?p=sobre'" style="cursor:pointer">Sobre Nós</li>
+    <li onclick="window.location.href='institucional.html?p=lojas'" style="cursor:pointer">Nossas Lojas</li>
+    <li onclick="window.location.href='institucional.html?p=trabalhe'" style="cursor:pointer">Trabalhe Conosco</li>
+</ul></div>
+<div class="footer-col"><h4>Ajuda</h4><ul>
+    <li onclick="window.location.href='institucional.html?p=ajuda'" style="cursor:pointer">Central de Ajuda</li>
+    <li onclick="window.location.href='institucional.html?p=comprar'" style="cursor:pointer">Como Comprar</li>
+    <li onclick="window.location.href='institucional.html?p=pagamento'" style="cursor:pointer">Pagamento</li>
+    <li onclick="window.location.href='institucional.html?p=entrega'" style="cursor:pointer">Entrega</li>
+</ul></div>
+<div class="footer-col"><h4>Categorias</h4><ul>
+    <li>Proteínas</li>
+    <li>Creatina</li>
+    <li>Pré-Treino</li>
+    <li>Vitaminas</li>
+</ul></div>
+<div class="footer-col"><h4>Contato</h4><ul>
+    <li style="margin-bottom:12px">
+        <a href="https://wa.me/5511987134973" target="_blank" style="display:flex;align-items:center;gap:10px;color:#25D366;font-weight:600;font-size:0.9rem">
+            <i class="fab fa-whatsapp" style="font-size:1.1rem"></i>
+            <span>(11) 98713-4973</span>
+        </a>
+    </li>
+    <li style="margin-bottom:12px">
+        <a href="https://instagram.com/dropset_nutrition" target="_blank" style="display:flex;align-items:center;gap:10px;color:var(--gray);font-size:0.85rem">
+            <i class="fab fa-instagram" style="color:#E4405F;font-size:1.1rem"></i>
+            <span>@dropset_nutrition</span>
+        </a>
+    </li>
+    <li style="margin-bottom:12px">
+        <a href="mailto:dropsetnutrition22@gmail.com" style="display:flex;align-items:center;gap:10px;color:var(--gray);font-size:0.85rem">
+            <i class="fas fa-envelope" style="color:var(--red);font-size:1rem"></i>
+            <span>dropsetnutrition22@gmail.com</span>
+        </a>
+    </li>
+    <li style="margin-top:20px;padding-top:15px;border-top:1px solid var(--border)">
+        <i class="fas fa-map-marker-alt" style="color:var(--red);margin-right:8px"></i>
+        <span style="color:var(--gray);font-size:0.8rem;line-height:1.6">
+            Rua Manoel Castro e Mendonça, 18A<br>
+            Vila Curuçá, São Paulo - SP<br>
+            CEP: 08151-650
+        </span>
+    </li>
+    <li style="margin-top:15px">
+        <a href="https://wa.me/5511987134973" target="_blank" class="btn" style="background:#25D366;color:#fff;padding:12px 24px;border-radius:50px;font-size:0.85rem;display:inline-flex;align-items:center;gap:10px;font-weight:700;transition:0.3s">
+            <i class="fab fa-whatsapp"></i> Fale Conosco
+        </a>
+    </li>
+</ul></div>
 </div>
 <div class="copyright"><p>© 2025 Dropset Suplementos. Todos os direitos reservados.</p><div class="payment-methods"><span>VISA</span><span>MASTER</span><span>PIX</span><span>BOLETO</span><span>ELO</span></div></div>
 </div>
@@ -634,7 +680,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 
 <script>
 // ========== CONFIGURAÇÃO DA API ==========
-const API_URL = 'https://dropset-backend.onrender.com'; // URL DO SEU BACKEND NO RENDER
+const API_URL = 'https://dropset-backend.onrender.com';
 
 // ========== FUNÇÕES GLOBAIS UI ==========
 window.addEventListener('load', function() {
@@ -804,23 +850,58 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
 });
 
-// Filtros e Busca
+// ==================== FILTROS E BUSCA ====================
 const searchInput = document.getElementById('searchInput');
-let timer;
+let searchTimer;
+
 searchInput.addEventListener('input', (e) => {
-    clearTimeout(timer);
+    clearTimeout(searchTimer);
     const termo = e.target.value.trim();
-    timer = setTimeout(() => {
-        if (termo.length >= 2) {
-            carregarProdutos(termo, null, `Resultados para: "${termo}"`);
-        } else if (termo === '') {
-            carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+    
+    if (termo.length === 0) {
+        carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+        return;
+    }
+    
+    if (termo.length < 2) return;
+    
+    searchTimer = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/produtos?q=${encodeURIComponent(termo)}`);
+            const produtos = await response.json();
+            
+            const grid = document.getElementById('productGrid');
+            const disponiveis = produtos.filter(p => p.estoque > 0);
+            
+            if (disponiveis.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--gray);">
+                    <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                    <h3 style="font-family: 'Oswald', sans-serif; font-size: 1.5rem; margin-bottom: 10px;">Nenhum produto encontrado</h3>
+                    <p>Tente buscar por: "whey", "creatina", "pré-treino"</p>
+                </div>`;
+            } else {
+                grid.innerHTML = disponiveis.map(criarCard).join('');
+                document.querySelector('.section-title').innerHTML = `Resultados para: "<span>${termo}</span>" (${disponiveis.length} produtos)`;
+            }
+            
+            document.getElementById('flashGrid').innerHTML = '';
+            document.getElementById('bestsellersGrid').innerHTML = '';
+            
+            setTimeout(() => {
+                document.querySelectorAll('.product-grid .reveal').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 100);
+        } catch (error) {
+            console.error('Erro na busca:', error);
+            showToast('Erro ao buscar produtos');
         }
-    }, 500);
+    }, 600);
 });
 
-function filterByCategory(cat) {
-    carregarProdutos(null, cat, `Categoria: <span>${cat}</span>`);
+function filterByCategory(categoria) {
+    carregarProdutos(null, categoria, `Categoria: <span>${categoria}</span>`);
     window.scrollTo({ top: document.getElementById('productGrid').offsetTop - 100, behavior: 'smooth' });
 }
 
