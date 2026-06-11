@@ -421,7 +421,10 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <header id="mainHeader">
 <div class="container header-main">
 <a href="#" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a>
-<div class="search-bar"><input type="text" id="searchInput" placeholder="Buscar produtos, marcas, categorias..."><button><i class="fas fa-search"></i></button></div>
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Buscar produtos, marcas, categorias..." onkeypress="if(event.key==='Enter')buscarProdutos()">
+    <button onclick="buscarProdutos()"><i class="fas fa-search"></i></button>
+</div>
 <div class="user-actions">
     <div id="userArea">
         <div onclick="openAuthModal('login')" style="cursor:pointer; display:flex; flex-direction:column; align-items:center;">
@@ -491,7 +494,6 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <section class="products-section container">
 <div class="section-header reveal"><h2 class="section-title">PRODUTOS EM <span>DESTAQUE</span></h2><a href="#" class="see-all">Ver todos <i class="fas fa-arrow-right"></i></a></div>
 <div class="product-grid" id="productGrid">
-    <!-- Produtos via JS -->
 </div>
 </section>
 
@@ -601,7 +603,6 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </div>
 </footer>
 
-<!-- ================= CARRINHO ================= -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header"><h3>🛒 Seu Carrinho</h3><button onclick="toggleCart()" class="close-cart"><i class="fas fa-times"></i></button></div>
@@ -612,7 +613,6 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
     </div>
 </div>
 
-<!-- ================= MODAL LOGIN/CADASTRO ================= -->
 <div class="modal-overlay" id="modalLogin">
     <div class="modal-box">
         <div class="modal-header"><h3>Login</h3><button class="close-modal" onclick="closeModals()">&times;</button></div>
@@ -639,19 +639,14 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
     </div>
 </div>
 
-<!-- ================= MODAL PERFIL DO USUÁRIO ================= -->
 <div class="modal-overlay" id="modalPerfil">
     <div class="modal-box" style="max-width:500px;">
         <div class="modal-header"><h3 id="perfilTitulo">Meu Perfil</h3><button class="close-modal" onclick="fecharPerfil()">&times;</button></div>
-        
-        <!-- Abas -->
         <div style="display:flex; gap:10px; border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px;">
             <button class="tab-btn active" onclick="mudarAba('dados', this)">👤 Dados</button>
             <button class="tab-btn" onclick="mudarAba('carrinho', this)">🛒 Carrinho</button>
             <button class="tab-btn" onclick="mudarAba('pedidos', this)">📦 Pedidos</button>
         </div>
-
-        <!-- Aba: Dados -->
         <div id="aba-dados" class="aba-conteudo active">
             <div class="auth-form">
                 <label style="color:#777; font-size:0.8rem;">Nome</label>
@@ -663,15 +658,11 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
                 <button class="btn-auth" onclick="fazerLogout()" style="background:#333; margin-top:15px;">Sair da Conta</button>
             </div>
         </div>
-
-        <!-- Aba: Carrinho -->
         <div id="aba-carrinho" class="aba-conteudo">
             <div id="carrinhoPerfil" style="max-height:200px; overflow-y:auto; margin-bottom:15px;"><p style="color:#777; text-align:center;">Carrinho vazio.</p></div>
             <div style="display:flex; justify-content:space-between; font-weight:700; border-top:1px solid #333; padding-top:10px;"><span>Total:</span><span id="totalCarrinhoPerfil">R$ 0,00</span></div>
             <button class="btn-auth" onclick="toggleCart(); fecharPerfil();" style="margin-top:15px;">Ir para o Carrinho</button>
         </div>
-
-        <!-- Aba: Pedidos -->
         <div id="aba-pedidos" class="aba-conteudo">
             <div id="listaPedidos" style="max-height:250px; overflow-y:auto;"><p style="color:#777; text-align:center; padding:20px;">Carregando...</p></div>
         </div>
@@ -679,10 +670,8 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </div>
 
 <script>
-// ========== CONFIGURAÇÃO DA API ==========
 const API_URL = 'https://dropset-backend.onrender.com';
 
-// ========== FUNÇÕES GLOBAIS UI ==========
 window.addEventListener('load', function() {
     setTimeout(function() { document.getElementById('loadingScreen').classList.add('hidden'); }, 800);
 });
@@ -760,7 +749,6 @@ document.querySelectorAll('.nav-link').forEach(function(link) {
     });
 });
 
-// ========== BACKEND & PRODUTOS ==========
 function formatarPreco(valor) {
     if (!valor) return 'R$ 0,00';
     const numero = parseFloat(valor);
@@ -844,13 +832,12 @@ async function carregarProdutos(busca, categoria, titulo) {
     }
 }
 
-// Inicializar ao carregar
 document.addEventListener('DOMContentLoaded', () => {
     verificarSessao();
     carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
 });
 
-// ==================== FILTROS E BUSCA ====================
+// ==================== BUSCA CORRIGIDA ====================
 const searchInput = document.getElementById('searchInput');
 let searchTimer;
 
@@ -900,6 +887,66 @@ searchInput.addEventListener('input', (e) => {
     }, 600);
 });
 
+function buscarProdutos() {
+    const termo = document.getElementById('searchInput').value.trim();
+    
+    if (termo.length < 2) {
+        showToast('Digite pelo menos 2 caracteres');
+        return;
+    }
+    
+    showToast(`Buscando por: "${termo}"...`);
+    document.getElementById('productGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/produtos?q=${encodeURIComponent(termo)}`);
+            const produtos = await response.json();
+            
+            const grid = document.getElementById('productGrid');
+            const disponiveis = produtos.filter(p => p.estoque > 0);
+            
+            if (disponiveis.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 80px 20px; color: var(--gray);">
+                        <i class="fas fa-search" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <h3 style="font-family: 'Oswald', sans-serif; font-size: 1.8rem; margin-bottom: 15px; color: #fff;">
+                            Nenhum produto encontrado
+                        </h3>
+                        <p style="font-size: 1rem; margin-bottom: 20px;">
+                            Não encontramos produtos com "<strong style="color: var(--red);">${termo}</strong>"
+                        </p>
+                        <button onclick="resetFilters()" class="btn btn-red" style="margin-top: 20px;">
+                            <i class="fas fa-undo"></i> Ver todos os produtos
+                        </button>
+                    </div>`;
+            } else {
+                grid.innerHTML = disponiveis.map(criarCard).join('');
+                document.querySelector('.section-title').innerHTML = `
+                    Resultados para: "<span>${termo}</span>" 
+                    <span style="font-size: 1rem; color: var(--gray); font-weight: 400;">
+                        (${disponiveis.length} produto${disponiveis.length !== 1 ? 's' : ''})
+                    </span>
+                `;
+            }
+            
+            document.getElementById('flashGrid').innerHTML = '';
+            document.getElementById('bestsellersGrid').innerHTML = '';
+            
+            setTimeout(() => {
+                document.querySelectorAll('.product-grid .reveal').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 100);
+        } catch (error) {
+            console.error('Erro na busca:', error);
+            showToast('Erro ao buscar produtos. Tente novamente.');
+        }
+    }, 300);
+}
+
 function filterByCategory(categoria) {
     carregarProdutos(null, categoria, `Categoria: <span>${categoria}</span>`);
     window.scrollTo({ top: document.getElementById('productGrid').offsetTop - 100, behavior: 'smooth' });
@@ -918,7 +965,6 @@ function resetFilters() {
     carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
 }
 
-// ========== CARRINHO ==========
 let cart = JSON.parse(localStorage.getItem('dropset_cart')) || [];
 updateCartIcon();
 
@@ -1019,7 +1065,6 @@ async function finalizarCompraMP() {
     }
 }
 
-// ========== AUTENTICAÇÃO ==========
 function verificarSessao() {
     const token = localStorage.getItem('dropset_token');
     const user = JSON.parse(localStorage.getItem('dropset_user'));
@@ -1115,7 +1160,6 @@ function fazerLogout() {
     verificarSessao();
 }
 
-// ========== PERFIL DO USUÁRIO ==========
 function abrirPerfil() {
     const user = JSON.parse(localStorage.getItem('dropset_user'));
     if (!user) return openAuthModal('login');
