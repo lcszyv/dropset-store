@@ -62,8 +62,9 @@ app.post('/api/registro', async (req, res) => {
 
         const hashedSenha = await bcrypt.hash(senha, 10);
         
+        // CORREÇÃO: senha -> senha_hash
         const result = await pool.query(
-            'INSERT INTO usuarios (nome, email, telefone, senha) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at',
+            'INSERT INTO usuarios (nome, email, telefone, senha_hash) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at',
             [nome, email, telefone || null, hashedSenha]
         );
 
@@ -99,8 +100,9 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
         }
 
+        // CORREÇÃO: senha -> senha_hash
         const result = await pool.query(
-            'SELECT id, nome, email, telefone, senha, created_at FROM usuarios WHERE email = $1',
+            'SELECT id, nome, email, telefone, senha_hash, created_at FROM usuarios WHERE email = $1',
             [email]
         );
 
@@ -109,7 +111,8 @@ app.post('/api/login', async (req, res) => {
         }
 
         const usuario = result.rows[0];
-        const senhaValida = await bcrypt.compare(senha, usuario.senha);
+        // CORREÇÃO: usuario.senha -> usuario.senha_hash
+        const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
 
         if (!senhaValida) {
             return res.status(401).json({ erro: 'Email ou senha inválidos' });
@@ -121,7 +124,8 @@ app.post('/api/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        delete usuario.senha;
+        // CORREÇÃO: delete usuario.senha -> delete usuario.senha_hash
+        delete usuario.senha_hash;
 
         console.log('✅ Login realizado:', email);
         res.json({ 
@@ -155,7 +159,7 @@ function autenticarToken(req, res, next) {
 
 // ==================== PRODUTOS ====================
 
-// Listar produtos (CORRIGIDO)
+// Listar produtos
 app.get('/api/produtos', async (req, res) => {
     try {
         const { q, categoria } = req.query;
@@ -171,15 +175,14 @@ app.get('/api/produtos', async (req, res) => {
         }
 
         if (q) {
-            // Busca mais segura e compatível
             query += ` AND (LOWER(nome) LIKE $${values.length + 1} OR LOWER(descricao) LIKE $${values.length + 1})`;
             values.push(`%${q.toLowerCase()}%`);
         }
 
         query += ' ORDER BY nome ASC';
         
-        console.log('📝 Query final:', query);
-        console.log('📦 Valores:', values);
+        console.log(' Query final:', query);
+        console.log(' Valores:', values);
 
         const result = await pool.query(query, values);
         console.log(`✅ Produtos encontrados: ${result.rows.length}`);
@@ -231,12 +234,12 @@ app.get('/api/meus-pedidos', autenticarToken, async (req, res) => {
 
 // ==================== PAGAMENTO MERCADO PAGO ====================
 
-// Criar preferência de pagamento (NOVA API)
+// Criar preferência de pagamento
 app.post('/api/pagamento-multiplo', async (req, res) => {
     try {
         const { cart } = req.body;
         
-        console.log('💳 Recebido pedido de pagamento:', cart);
+        console.log(' Recebido pedido de pagamento:', cart);
 
         if (!cart || cart.length === 0) {
             return res.status(400).json({ erro: 'Carrinho vazio' });
