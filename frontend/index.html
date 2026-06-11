@@ -421,7 +421,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <header id="mainHeader">
 <div class="container header-main">
 <a href="#" class="logo">DROP<span>SET</span><small>A NEW DOSE FOR NUTRITION</small></a>
-<div class="search-bar"><input type="text" placeholder="Buscar produtos, marcas, categorias..."><button><i class="fas fa-search"></i></button></div>
+<div class="search-bar"><input type="text" id="searchInput" placeholder="Buscar produtos, marcas, categorias..."><button><i class="fas fa-search"></i></button></div>
 <div class="user-actions">
     <div id="userArea">
         <div onclick="openAuthModal('login')" style="cursor:pointer; display:flex; flex-direction:column; align-items:center;">
@@ -439,15 +439,15 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 
 <nav class="nav-bar" id="navBar">
 <div class="container"><ul class="nav-list">
-<li><a href="#" class="nav-link active"><i class="fas fa-home"></i> Início</a></li>
-<li><a href="#" class="nav-link">Proteínas <span class="badge-hot">HOT</span></a></li>
-<li><a href="#" class="nav-link">Creatina</a></li>
-<li><a href="#" class="nav-link">Pré-Treino</a></li>
-<li><a href="#" class="nav-link">Mass Gainer</a></li>
-<li><a href="#" class="nav-link">Aminoácidos</a></li>
-<li><a href="#" class="nav-link">Vitaminas</a></li>
-<li><a href="#" class="nav-link">Roupas</a></li>
-<li><a href="#" class="nav-link" style="color:var(--red)">Ofertas <span class="badge-hot">-50%</span></a></li>
+<li><a href="#" class="nav-link active" onclick="resetFilters()"><i class="fas fa-home"></i> Início</a></li>
+<li><a href="#" class="nav-link" data-categoria="Proteínas">Proteínas <span class="badge-hot">HOT</span></a></li>
+<li><a href="#" class="nav-link" data-categoria="Creatina">Creatina</a></li>
+<li><a href="#" class="nav-link" data-categoria="Pré-Treino">Pré-Treino</a></li>
+<li><a href="#" class="nav-link" data-categoria="Mass Gainer">Mass Gainer</a></li>
+<li><a href="#" class="nav-link" data-categoria="Aminoácidos">Aminoácidos</a></li>
+<li><a href="#" class="nav-link" data-categoria="Vitaminas">Vitaminas</a></li>
+<li><a href="#" class="nav-link" data-categoria="Roupas">Roupas</a></li>
+<li><a href="#" class="nav-link" data-categoria="Ofertas" style="color:var(--red)">Ofertas <span class="badge-hot">-50%</span></a></li>
 </ul></div>
 </nav>
 
@@ -479,12 +479,12 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <section class="categories container">
 <div class="section-header reveal"><h2 class="section-title">CATEGORIAS <span>POPULARES</span></h2><a href="#" class="see-all">Ver todas <i class="fas fa-arrow-right"></i></a></div>
 <div class="cat-grid">
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-dumbbell"></i></div><h4>Proteínas</h4><span>124 produtos</span></div>
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-bolt"></i></div><h4>Pré-Treino</h4><span>56 produtos</span></div>
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-capsules"></i></div><h4>Creatina</h4><span>38 produtos</span></div>
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-weight-hanging"></i></div><h4>Mass Gainer</h4><span>27 produtos</span></div>
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-heartbeat"></i></div><h4>Vitaminas</h4><span>89 produtos</span></div>
-<div class="cat-card reveal"><div class="cat-icon"><i class="fas fa-tshirt"></i></div><h4>Roupas</h4><span>156 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Proteínas')"><div class="cat-icon"><i class="fas fa-dumbbell"></i></div><h4>Proteínas</h4><span>124 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Pré-Treino')"><div class="cat-icon"><i class="fas fa-bolt"></i></div><h4>Pré-Treino</h4><span>56 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Creatina')"><div class="cat-icon"><i class="fas fa-capsules"></i></div><h4>Creatina</h4><span>38 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Mass Gainer')"><div class="cat-icon"><i class="fas fa-weight-hanging"></i></div><h4>Mass Gainer</h4><span>27 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Vitaminas')"><div class="cat-icon"><i class="fas fa-heartbeat"></i></div><h4>Vitaminas</h4><span>89 produtos</span></div>
+<div class="cat-card reveal" onclick="filterByCategory('Roupas')"><div class="cat-icon"><i class="fas fa-tshirt"></i></div><h4>Roupas</h4><span>156 produtos</span></div>
 </div>
 </section>
 
@@ -633,6 +633,9 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 </div>
 
 <script>
+// ========== CONFIGURAÇÃO DA API ==========
+const API_URL = 'https://dropset-backend.onrender.com'; // URL DO SEU BACKEND NO RENDER
+
 // ========== FUNÇÕES GLOBAIS UI ==========
 window.addEventListener('load', function() {
     setTimeout(function() { document.getElementById('loadingScreen').classList.add('hidden'); }, 800);
@@ -755,23 +758,35 @@ function criarCard(produto) {
     </div>`;
 }
 
-async function carregarProdutos() {
+async function carregarProdutos(busca, categoria, titulo) {
     try {
-        const response = await fetch('http://localhost:3000/api/produtos');
+        let url = `${API_URL}/api/produtos?`;
+        if (busca) url += `q=${busca}&`;
+        if (categoria) url += `categoria=${categoria}`;
+
+        const response = await fetch(url);
         const produtos = await response.json();
         
         const grid = document.getElementById('productGrid');
         const disponiveis = produtos.filter(p => p.estoque > 0);
+        
         grid.innerHTML = disponiveis.slice(0, 8).map(criarCard).join('');
         
-        const flashGrid = document.getElementById('flashGrid');
-        const flashProdutos = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4);
-        flashGrid.innerHTML = flashProdutos.map(criarCard).join('');
-        
-        const bestGrid = document.getElementById('bestsellersGrid');
-        const bestProdutos = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4);
-        bestGrid.innerHTML = bestProdutos.map(criarCard).join('');
-        
+        if (titulo) {
+            document.querySelector('.section-title').innerHTML = titulo;
+        }
+
+        if (!busca && !categoria) {
+            const flashGrid = document.getElementById('flashGrid');
+            flashGrid.innerHTML = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4).map(criarCard).join('');
+            
+            const bestGrid = document.getElementById('bestsellersGrid');
+            bestGrid.innerHTML = disponiveis.sort(() => 0.5 - Math.random()).slice(0, 4).map(criarCard).join('');
+        } else {
+             document.getElementById('flashGrid').innerHTML = '';
+             document.getElementById('bestsellersGrid').innerHTML = '';
+        }
+
         setTimeout(() => {
             document.querySelectorAll('.product-grid .reveal').forEach(el => {
                 el.style.opacity = '1'; el.style.transform = 'translateY(0)';
@@ -779,8 +794,47 @@ async function carregarProdutos() {
         }, 100);
     } catch (erro) {
         console.error('❌ Erro:', erro);
-        document.getElementById('productGrid').innerHTML = '<p style="color:var(--gray);text-align:center;grid-column:1/-1;">⚠️ Erro.</p>';
+        document.getElementById('productGrid').innerHTML = '<p style="color:var(--gray);text-align:center;grid-column:1/-1;">⚠️ Erro ao carregar.</p>';
     }
+}
+
+// Inicializar ao carregar
+document.addEventListener('DOMContentLoaded', () => {
+    verificarSessao();
+    carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+});
+
+// Filtros e Busca
+const searchInput = document.getElementById('searchInput');
+let timer;
+searchInput.addEventListener('input', (e) => {
+    clearTimeout(timer);
+    const termo = e.target.value.trim();
+    timer = setTimeout(() => {
+        if (termo.length >= 2) {
+            carregarProdutos(termo, null, `Resultados para: "${termo}"`);
+        } else if (termo === '') {
+            carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
+        }
+    }, 500);
+});
+
+function filterByCategory(cat) {
+    carregarProdutos(null, cat, `Categoria: <span>${cat}</span>`);
+    window.scrollTo({ top: document.getElementById('productGrid').offsetTop - 100, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-link[data-categoria]').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const categoria = link.getAttribute('data-categoria');
+        filterByCategory(categoria);
+    });
+});
+
+function resetFilters() {
+    searchInput.value = '';
+    carregarProdutos(null, null, 'PRODUTOS EM <span>DESTAQUE</span>');
 }
 
 // ========== CARRINHO ==========
@@ -854,9 +908,8 @@ async function finalizarCompraMP() {
     const total = cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
 
     try {
-        // Salvar pedido se usuário logado
         if (user) {
-            await fetch('http://localhost:3000/api/pedidos', {
+            await fetch(`${API_URL}/api/pedidos`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -866,7 +919,7 @@ async function finalizarCompraMP() {
             });
         }
 
-        const response = await fetch('http://localhost:3000/api/pagamento-multiplo', {
+        const response = await fetch(`${API_URL}/api/pagamento-multiplo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cart: cart, usuario: user })
@@ -886,11 +939,6 @@ async function finalizarCompraMP() {
 }
 
 // ========== AUTENTICAÇÃO ==========
-document.addEventListener('DOMContentLoaded', () => {
-    verificarSessao();
-    carregarProdutos();
-});
-
 function verificarSessao() {
     const token = localStorage.getItem('dropset_token');
     const user = JSON.parse(localStorage.getItem('dropset_user'));
@@ -938,7 +986,7 @@ async function realizarLogin(e) {
     const btn = document.getElementById('btnLogin');
     btn.textContent = 'Entrando...'; btn.disabled = true;
     try {
-        const res = await fetch('http://localhost:3000/api/login', {
+        const res = await fetch(`${API_URL}/api/login`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, senha })
         });
@@ -964,7 +1012,7 @@ async function realizarCadastro(e) {
     const btn = document.getElementById('btnCadastro');
     btn.textContent = 'Cadastrando...'; btn.disabled = true;
     try {
-        const res = await fetch('http://localhost:3000/api/registro', {
+        const res = await fetch(`${API_URL}/api/registro`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nome, email, telefone, senha })
         });
@@ -1036,7 +1084,7 @@ async function carregarPedidos() {
     const token = localStorage.getItem('dropset_token');
     
     try {
-        const res = await fetch('http://localhost:3000/api/meus-pedidos', {
+        const res = await fetch(`${API_URL}/api/meus-pedidos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const pedidos = await res.json();
