@@ -62,7 +62,6 @@ app.post('/api/registro', async (req, res) => {
 
         const hashedSenha = await bcrypt.hash(senha, 10);
         
-        // CORREÇÃO: senha -> senha_hash
         const result = await pool.query(
             'INSERT INTO usuarios (nome, email, telefone, senha_hash) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at',
             [nome, email, telefone || null, hashedSenha]
@@ -100,7 +99,6 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
         }
 
-        // CORREÇÃO: senha -> senha_hash
         const result = await pool.query(
             'SELECT id, nome, email, telefone, senha_hash, created_at FROM usuarios WHERE email = $1',
             [email]
@@ -111,7 +109,6 @@ app.post('/api/login', async (req, res) => {
         }
 
         const usuario = result.rows[0];
-        // CORREÇÃO: usuario.senha -> usuario.senha_hash
         const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
 
         if (!senhaValida) {
@@ -124,7 +121,6 @@ app.post('/api/login', async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        // CORREÇÃO: delete usuario.senha -> delete usuario.senha_hash
         delete usuario.senha_hash;
 
         console.log('✅ Login realizado:', email);
@@ -181,8 +177,8 @@ app.get('/api/produtos', async (req, res) => {
 
         query += ' ORDER BY nome ASC';
         
-        console.log(' Query final:', query);
-        console.log(' Valores:', values);
+        console.log('📝 Query final:', query);
+        console.log('📦 Valores:', values);
 
         const result = await pool.query(query, values);
         console.log(`✅ Produtos encontrados: ${result.rows.length}`);
@@ -203,7 +199,7 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
         const userId = req.usuario.id;
 
         const result = await pool.query(
-            'INSERT INTO pedidos (user_id, itens, total, status) VALUES ($1, $2, $3, $4) RETURNING *',
+            'INSERT INTO pedidos (usuario_id, itens, total, status) VALUES ($1, $2, $3, $4) RETURNING *',
             [userId, JSON.stringify(carrinho), total, 'pendente']
         );
 
@@ -221,7 +217,7 @@ app.get('/api/meus-pedidos', autenticarToken, async (req, res) => {
         const userId = req.usuario.id;
         
         const result = await pool.query(
-            'SELECT * FROM pedidos WHERE user_id = $1 ORDER BY created_at DESC',
+            'SELECT * FROM pedidos WHERE usuario_id = $1 ORDER BY created_at DESC',
             [userId]
         );
 
@@ -239,7 +235,7 @@ app.post('/api/pagamento-multiplo', async (req, res) => {
     try {
         const { cart } = req.body;
         
-        console.log(' Recebido pedido de pagamento:', cart);
+        console.log('💳 Recebido pedido de pagamento:', cart);
 
         if (!cart || cart.length === 0) {
             return res.status(400).json({ erro: 'Carrinho vazio' });
