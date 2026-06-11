@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">DropSet - Institucional</title>
+    <!-- Fontes e Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Mesmas variáveis do site principal --- */
+        :root {
+            --red: #DC2626;
+            --red-light: #EF4444;
+            --red-dark: #991B1B;
+            --dark: #0A0A0A;
+            --card: #1A1A1A;
+            --gray: #9CA3AF;
+            --border: #2A2A2A;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--dark); color:#fff; font-family:'Inter',sans-serif; }
+        a { text-decoration:none; color:inherit; transition:0.3s; }
+        
+        /* --- Header Simplificado --- */
+        header { 
+            background:rgba(10,10,10,0.95); backdrop-filter:blur(20px); 
+            padding:20px 0; border-bottom:1px solid var(--border); 
+            position:sticky; top:0; z-index:1000; 
+        }
+        .container { max-width:1280px; margin:0 auto; padding:0 20px; }
+        .header-main { display:flex; align-items:center; justify-content:space-between; }
+        
+        .logo { font-family:'Oswald',sans-serif; font-size:1.8rem; font-weight:700; }
+        .logo span { background:linear-gradient(135deg, var(--red-light), var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        
+        .back-link { color:var(--gray); display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:600; }
+        .back-link:hover { color:var(--red); transform:translateX(-5px); }
+
+        /* --- Conteúdo da Página --- */
+        .page-content { padding:80px 0; min-height:70vh; }
+        
+        .page-header { margin-bottom:50px; border-left:4px solid var(--red); padding-left:20px; }
+        .page-title { font-family:'Oswald',sans-serif; font-size:3rem; text-transform:uppercase; margin-bottom:10px; line-height:1; }
+        .page-title span { color:var(--red); }
+        
+        .content-section { 
+            background:var(--card); border:1px solid var(--border); 
+            border-radius:16px; padding:40px; margin-bottom:30px; 
+        }
+        .content-section h3 { font-family:'Oswald',sans-serif; font-size:1.5rem; margin-bottom:20px; color:var(--red-light); }
+        .content-section p { color:var(--gray); line-height:1.8; margin-bottom:15px; font-size:1rem; }
+        .content-section ul { margin-left:20px; color:var(--gray); line-height:2; }
+        .content-section ul li { margin-bottom:10px; }
+        .content-section i { color:var(--red); margin-right:10px; width:20px; text-align:center; }
+
+        /* --- Botão WhatsApp --- */
+        .whatsapp-btn { 
+            display:inline-flex; align-items:center; gap:12px; 
+            background:#25D366; color:#fff; 
+            padding:16px 32px; border-radius:50px; 
+            font-weight:700; font-size:1rem; 
+            margin-top:20px; transition:0.3s;
+            border:none; cursor:pointer;
+        }
+        .whatsapp-btn:hover { 
+            transform:translateY(-3px); 
+            box-shadow:0 10px 30px rgba(37,211,102,0.3);
+        }
+
+        /* --- Footer (Mesmo do index) --- */
+        footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border); margin-top:80px; }
+        .footer-grid { display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr 1.3fr; gap:40px; margin-bottom:40px; }
+        .footer-col h4 { font-size:0.85rem; margin-bottom:18px; text-transform:uppercase; font-weight:700; letter-spacing:1px; position:relative; padding-bottom:10px; }
+        .footer-col h4::after { content:''; position:absolute; bottom:0; left:0; width:30px; height:2px; background:var(--red); border-radius:1px; }
+        .footer-col ul li { margin-bottom:10px; font-size:0.8rem; color:var(--gray); cursor:pointer; transition:0.3s; }
+        .footer-col ul li:hover { color:var(--red); transform:translateX(5px); }
+        .footer-about p { font-size:0.8rem; color:var(--gray); line-height:1.7; margin-top:15px; }
+        .footer-social { display:flex; gap:10px; margin-top:20px; }
+        .footer-social a { width:38px; height:38px; background:var(--card); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--gray); transition:0.3s; font-size:0.9rem; }
+        .footer-social a:hover { background:var(--red); border-color:var(--red); color:#fff; transform:translateY(-3px); }
+        .copyright { text-align:center; border-top:1px solid var(--border); padding-top:25px; font-size:0.7rem; color:var(--gray); }
+        .payment-methods { display:flex; justify-content:center; gap:10px; margin-top:12px; }
+        .payment-methods span { background:var(--card); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:0.6rem; font-weight:600; color:var(--gray); }
+
+        /* --- Mobile --- */
+        @media(max-width:768px) {
+            .page-title { font-size:2rem; }
+            .content-section { padding:25px 20px; }
+            .footer-grid { grid-template-columns:1fr 1fr; }
+            .header-main { flex-direction:column; gap:15px; text-align:center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container header-main">
+            <a href="index.html" class="logo">DROP<span>SET</span></a>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para Loja</a>
+        </div>
+    </header>
+
+    <div class="container page-content" id="pageContent">
+        <!-- O conteúdo será injetado aqui pelo JavaScript -->
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-about">
+                    <a href="index.html" class="logo">DROP<span>SET</span><small style="display:block;font-family:'Inter';font-size:0.5rem;font-weight:400;color:#9CA3AF;letter-spacing:3px;text-transform:uppercase;">A NEW DOSE FOR NUTRITION</small></a>
+                    <p>A Dropset é a sua loja de suplementos.</p>
+                    <div class="footer-social">
+                        <a href="https://instagram.com/dropset_nutrition" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col"><h4>Institucional</h4><ul>
+                    <li onclick="loadPage('sobre')" style="cursor:pointer">Sobre Nós</li>
+                    <li onclick="loadPage('lojas')" style="cursor:pointer">Nossas Lojas</li>
+                    <li onclick="loadPage('trabalhe')" style="cursor:pointer">Trabalhe Conosco</li>
+                </ul></div>
+                <div class="footer-col"><h4>Ajuda</h4><ul>
+                    <li onclick="loadPage('ajuda')" style="cursor:pointer">Central de Ajuda</li>
+                    <li onclick="loadPage('comprar')" style="cursor:pointer">Como Comprar</li>
+                    <li onclick="loadPage('pagamento')" style="cursor:pointer">Pagamento</li>
+                    <li onclick="loadPage('entrega')" style="cursor:pointer">Entrega</li>
+                </ul></div>
+                <div class="footer-col"><h4>Categorias</h4><ul>
+                    <li>Proteínas</li>
+                    <li>Creatina</li>
+                    <li>Pré-Treino</li>
+                    <li>Vitaminas</li>
+                </ul></div>
+                <div class="footer-col"><h4>Contato</h4><ul>
+                    <li style="margin-bottom:12px">
+                        <a href="https://wa.me/5511987134973" target="_blank" style="display:flex;align-items:center;gap:10px;color:#25D366;font-weight:600;font-size:0.9rem">
+                            <i class="fab fa-whatsapp" style="font-size:1.1rem"></i>
+                            <span>(11) 98713-4973</span>
+                        </a>
+                    </li>
+                    <li style="margin-bottom:12px">
+                        <a href="https://instagram.com/dropset_nutrition" target="_blank" style="display:flex;align-items:center;gap:10px;color:var(--gray);font-size:0.85rem">
+                            <i class="fab fa-instagram" style="color:#E4405F;font-size:1.1rem"></i>
+                            <span>@dropset_nutrition</span>
+                        </a>
+                    </li>
+                    <li style="margin-bottom:12px">
+                        <a href="mailto:dropsetnutrition22@gmail.com" style="display:flex;align-items:center;gap:10px;color:var(--gray);font-size:0.85rem">
+                            <i class="fas fa-envelope" style="color:var(--red);font-size:1rem"></i>
+                            <span>dropsetnutrition22@gmail.com</span>
+                        </a>
+                    </li>
+                    <li style="margin-top:20px;padding-top:15px;border-top:1px solid var(--border)">
+                        <i class="fas fa-map-marker-alt" style="color:var(--red);margin-right:8px"></i>
+                        <span style="color:var(--gray);font-size:0.8rem;line-height:1.6">
+                            Rua Manoel Castro e Mendonça, 18A<br>
+                            Vila Curuçá, São Paulo - SP<br>
+                            CEP: 08151-650
+                        </span>
+                    </li>
+                    <li style="margin-top:15px">
+                        <a href="https://wa.me/5511987134973" target="_blank" class="whatsapp-btn" style="background:#25D366;color:#fff;padding:10px 20px;border-radius:50px;font-size:0.85rem;display:inline-flex;align-items:center;gap:10px;font-weight:700;">
+                            <i class="fab fa-whatsapp"></i> Fale Conosco
+                        </a>
+                    </li>
+                </ul></div>
+            </div>
+            <div class="copyright"><p>© 2025 Dropset Suplementos. Todos os direitos reservados.</p><div class="payment-methods"><span>VISA</span><span>MASTER</span><span>PIX</span><span>BOLETO</span><span>ELO</span></div></div>
+        </div>
+    </footer>
+
+    <script>
+        // Dados das páginas
+        const pages = {
+            sobre: {
+                title: 'SOBRE <span>NÓS</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-dumbbell"></i> Nossa História</h3>
+                        <p>A DropSet nasceu da paixão por musculação e vida saudável. Fundada em 2025, nossa missão é oferecer suplementos de qualidade com preços justos para todos os brasileiros.</p>
+                        <p>Trabalhamos apenas com marcas confiáveis e produtos 100% originais, garantindo os melhores resultados para seus treinos.</p>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-bullseye"></i> Nossa Missão</h3>
+                        <p>Democratizar o acesso a suplementos de qualidade, oferecendo atendimento personalizado e entrega rápida para todo o Brasil.</p>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-eye"></i> Nossa Visão</h3>
+                        <p>Ser referência nacional em suplementação esportiva, reconhecida pela qualidade, preço justo e atendimento excepcional.</p>
+                    </div>
+                `
+            },
+            lojas: {
+                title: 'NOSSAS <span>LOJAS</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-store"></i> Loja Física</h3>
+                        <p><strong>Endereço:</strong> Rua Manoel Castro e Mendonça, 18A, Vila Curuçá, São Paulo - SP</p>
+                        <p><strong>CEP:</strong> 08151-650</p>
+                        <p><strong>Horário de Funcionamento:</strong></p>
+                        <ul>
+                            <li>Segunda a Sexta: 9h às 20h</li>
+                            <li>Sábado: 10h às 18h</li>
+                            <li>Domingo: Fechado</li>
+                        </ul>
+                        <a href="https://wa.me/5511987134973" target="_blank" class="whatsapp-btn">
+                            <i class="fab fa-whatsapp"></i> Fale Conosco
+                        </a>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-laptop"></i> Loja Online</h3>
+                        <p>Disponível 24 horas por dia, 7 dias por semana! Compre no conforto da sua casa e receba no endereço desejado.</p>
+                        <p><strong>Entregamos para todo o Brasil!</strong></p>
+                    </div>
+                `
+            },
+            trabalhe: {
+                title: 'TRABALHE <span>CONOSCO</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-users"></i> Por que trabalhar na DropSet?</h3>
+                        <p>Oferecemos um ambiente dinâmico, oportunidades de crescimento e benefícios competitivos. Se você é apaixonado por fitness e quer fazer parte de uma equipe em crescimento, envie seu currículo!</p>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-briefcase"></i> Vagas Abertas</h3>
+                        <ul>
+                            <li><strong>Vendedor(a) - Loja Física</strong></li>
+                            <li><strong>Atendente de E-commerce</strong></li>
+                            <li><strong>Estoquista</strong></li>
+                        </ul>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-paper-plane"></i> Como se Candidatar</h3>
+                        <p>Envie seu currículo para: <strong>vagas@dropset.com.br</strong></p>
+                        <p>Ou entre em contato pelo WhatsApp:</p>
+                        <a href="https://wa.me/5511987134973" target="_blank" class="whatsapp-btn">
+                            <i class="fab fa-whatsapp"></i> Falar com RH
+                        </a>
+                    </div>
+                `
+            },
+            ajuda: {
+                title: 'CENTRAL DE <span>AJUDA</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-question-circle"></i> Dúvidas Frequentes</h3>
+                        <ul>
+                            <li><strong>Como rastrear meu pedido?</strong><br>Você receberá um código de rastreio por email assim que seu pedido for despachado.</li>
+                            <li><strong>Posso trocar um produto?</strong><br>Sim! Temos política de troca de até 30 dias.</li>
+                            <li><strong>Quais formas de pagamento?</strong><br>Aceitamos cartão de crédito, PIX, boleto e Mercado Pago.</li>
+                        </ul>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-headset"></i> Precisa de Ajuda?</h3>
+                        <p>Nossa equipe está disponível para ajudar!</p>
+                        <a href="https://wa.me/5511987134973" target="_blank" class="whatsapp-btn">
+                            <i class="fab fa-whatsapp"></i> Falar no WhatsApp
+                        </a>
+                    </div>
+                `
+            },
+            comprar: {
+                title: 'COMO <span>COMPRAR</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-list-ol"></i> Passo a Passo</h3>
+                        <ol style="margin-left:20px; color:var(--gray); line-height:2.2;">
+                            <li>Escolha os produtos desejados</li>
+                            <li>Clique em "Adicionar ao Carrinho"</li>
+                            <li>Revise seu carrinho</li>
+                            <li>Clique em "Finalizar Compra"</li>
+                            <li>Escolha a forma de pagamento</li>
+                            <li>Confirme seus dados</li>
+                            <li>Pronto! Você receberá um email de confirmação</li>
+                        </ol>
+                    </div>
+                `
+            },
+            pagamento: {
+                title: 'FORMAS DE <span>PAGAMENTO</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-credit-card"></i> Aceitamos</h3>
+                        <ul>
+                            <li><i class="fas fa-credit-card"></i> <strong>Cartão de Crédito:</strong> Até 12x sem juros</li>
+                            <li><i class="fas fa-barcode"></i> <strong>Boleto Bancário:</strong> Aprovação em 1-3 dias úteis</li>
+                            <li><i class="fas fa-qrcode"></i> <strong>PIX:</strong> 5% de desconto e aprovação imediata</li>
+                            <li><i class="fas fa-wallet"></i> <strong>Mercado Pago:</strong> Pagamento seguro e rápido</li>
+                        </ul>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-shield-alt"></i> Segurança</h3>
+                        <p>Todas as transações são criptografadas e 100% seguras. Seus dados estão protegidos.</p>
+                    </div>
+                `
+            },
+            entrega: {
+                title: 'ENTREGA E <span>FRETE</span>',
+                content: `
+                    <div class="content-section">
+                        <h3><i class="fas fa-truck"></i> Prazos de Entrega</h3>
+                        <ul>
+                            <li><strong>São Paulo (Capital):</strong> 1-3 dias úteis</li>
+                            <li><strong>Sudeste:</strong> 3-7 dias úteis</li>
+                            <li><strong>Resto do Brasil:</strong> 5-15 dias úteis</li>
+                        </ul>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-gift"></i> Frete Grátis</h3>
+                        <p><strong>Compras acima de R$ 199,00</strong> têm frete grátis para todo o Brasil!</p>
+                    </div>
+                    <div class="content-section">
+                        <h3><i class="fas fa-search-location"></i> Rastreamento</h3>
+                        <p>Após o despacho, você receberá um código de rastreio para acompanhar sua entrega em tempo real.</p>
+                    </div>
+                `
+            }
+        };
+
+        // Função para carregar o conteúdo
+        function loadPage(pageName) {
+            const page = pages[pageName];
+            if (page) {
+                document.getElementById('pageTitle').textContent = page.title.replace(/<[^>]*>/g, '') + ' - DropSet';
+                document.getElementById('pageContent').innerHTML = `
+                    <div class="page-header">
+                        <h1 class="page-title">${page.title}</h1>
+                    </div>
+                    ${page.content}
+                `;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Verifica parâmetro na URL ao carregar
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const pageParam = params.get('p');
+            if (pageParam && pages[pageParam]) {
+                loadPage(pageParam);
+            } else {
+                loadPage('sobre'); // Padrão: Sobre Nós
+            }
+        });
+    </script>
+</body>
+</html>
