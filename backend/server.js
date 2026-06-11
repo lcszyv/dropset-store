@@ -9,10 +9,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração do Mercado Pago com Sandbox forçado
+// Configuração do Mercado Pago com Sandbox
 mercadopago.configure({
     access_token: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-    sandbox: true // Força ambiente de testes
+    sandbox: true
 });
 
 // Configuração do banco de dados Supabase
@@ -149,11 +149,13 @@ function autenticarToken(req, res, next) {
 
 // ==================== PRODUTOS ====================
 
-// Listar produtos
+// Listar produtos (CORRIGIDO)
 app.get('/api/produtos', async (req, res) => {
     try {
         const { q, categoria } = req.query;
         
+        console.log('🔍 Recebido request:', { q, categoria });
+
         let query = 'SELECT * FROM produtos WHERE estoque > 0';
         const values = [];
 
@@ -163,18 +165,23 @@ app.get('/api/produtos', async (req, res) => {
         }
 
         if (q) {
-            query += ` AND (nome ILIKE $${values.length + 1} OR descricao ILIKE $${values.length + 1})`;
-            values.push(`%${q}%`);
+            // Busca mais segura e compatível
+            query += ` AND (LOWER(nome) LIKE $${values.length + 1} OR LOWER(descricao) LIKE $${values.length + 1})`;
+            values.push(`%${q.toLowerCase()}%`);
         }
 
         query += ' ORDER BY nome ASC';
+        
+        console.log('📝 Query final:', query);
+        console.log('📦 Valores:', values);
 
         const result = await pool.query(query, values);
+        console.log(`✅ Produtos encontrados: ${result.rows.length}`);
         
         res.json(result.rows);
     } catch (error) {
         console.error('❌ ERRO AO BUSCAR PRODUTOS:', error.message);
-        res.status(500).json({ erro: 'Erro ao buscar produtos' });
+        res.status(500).json({ erro: 'Erro ao buscar produtos', details: error.message });
     }
 });
 
@@ -271,7 +278,7 @@ app.post('/api/webhook-mp', async (req, res) => {
             const payment = await mercadopago.payment.get(data.id);
             const paymentData = payment.body;
             
-            const status = paymentData.status; // approved, pending, rejected
+            const status = paymentData.status;
             
             await pool.query(
                 'UPDATE pedidos SET status = $1, pagamento_id = $2 WHERE pagamento_id = $3',
@@ -292,8 +299,8 @@ app.post('/api/webhook-mp', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log('🔥 Servidor DropSet ativo na porta', PORT);
-    console.log('📡 Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo');
-    console.log('🏦 Mercado Pago Sandbox:', mercadopago.config.sandbox ? '✅ ATIVO' : '❌ INATIVO');
+    console.log(' Rotas disponíveis: /api/registro, /api/login, /api/produtos, /api/pagamento-multiplo');
+    console.log(' Mercado Pago Sandbox:', mercadopago.config.sandbox ? '✅ ATIVO' : '❌ INATIVO');
 });
 
 module.exports = app;
