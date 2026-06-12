@@ -11,10 +11,16 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração do Mercado Pago
+// Configuração do Mercado Pago (NOVA API)
 const client = new MercadoPagoConfig({ 
     accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN,
-    options: { timeout: 5000, idempotencyKey: 'abc', headers: { 'X-Platform-Id': 'backend' } }
+    options: {
+        timeout: 5000,
+        idempotencyKey: 'abc',
+        headers: {
+            'X-Platform-Id': 'backend'
+        }
+    }
 });
 
 // Configuração do Supabase (para upload de imagens)
@@ -26,7 +32,9 @@ const supabase = createClient(
 // Configuração do banco de dados
 const pool = new Pool({
     connectionString: process.env.SUPABASE_DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 // Configuração do Multer (upload em memória)
@@ -49,7 +57,7 @@ app.get('/api/test', async (req, res) => {
         const client = await pool.connect();
         await client.query('SELECT NOW()');
         client.release();
-        res.json({ status: 'OK', message: 'Servidor conectado!' });
+        res.json({ status: 'OK', message: 'Servidor e banco conectados!' });
     } catch (error) {
         res.status(500).json({ status: 'ERROR', message: error.message });
     }
@@ -60,108 +68,177 @@ app.get('/api/test', async (req, res) => {
 function autenticarToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ erro: 'Token não fornecido' });
+
+    if (!token) {
+        return res.status(401).json({ erro: 'Token não fornecido' });
+    }
 
     jwt.verify(token, process.env.JWT_SECRET || 'dropset2025seguro!', (err, usuario) => {
-        if (err) return res.status(403).json({ erro: 'Token inválido' });
+        if (err) {
+            return res.status(403).json({ erro: 'Token inválido ou expirado' });
+        }
         req.usuario = usuario;
         next();
     });
 }
 
+// Middleware para verificar se é ADMIN
 function verificarAdmin(req, res, next) {
     autenticarToken(req, res, () => {
-        // ⚠️ TROQUE PELO SEU EMAIL
-        if (req.usuario.email === 'lucas@gmail.com') {
+        // ✅ EMAIL DO ADMINISTRADOR CONFIGURADO
+        if (req.usuario.email === 'lucasteste@gmail.com') {
             next();
         } else {
-            res.status(403).json({ erro: 'Acesso negado' });
+            res.status(403).json({ erro: 'Acesso negado: Apenas administradores.' });
         }
     });
 }
 
+// Registro
 app.post('/api/registro', async (req, res) => {
     try {
         const { nome, email, telefone, senha } = req.body;
-        if (!nome || !email || !senha) return res.status(400).json({ erro: 'Campos obrigatórios' });
+        
+        if (!nome || !email || !senha) {
+            return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+        }
 
         const hashedSenha = await bcrypt.hash(senha, 10);
+        
         const result = await pool.query(
             'INSERT INTO usuarios (nome, email, telefone, senha_hash) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, telefone, created_at',
             [nome, email, telefone || null, hashedSenha]
         );
 
         const usuario = result.rows[0];
-        const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET || 'dropset2025seguro!', { expiresIn: '7d' });
-        res.status(201).json({ mensagem: 'Usuário criado', usuario, token });
+        const token = jwt.sign(
+            { id: usuario.id, email: usuario.email },
+            process.env.JWT_SECRET || 'dropset2025seguro!',
+            { expiresIn: '7d' }
+        );
+
+        console.log('✅ Registro realizado:', email);
+        res.status(201).json({ 
+            mensagem: 'Usuário criado com sucesso',
+            usuario,
+            token
+        });
     } catch (error) {
-        console.error('ERRO REGISTRO:', error.message);
-        if (error.code === '23505') res.status(409).json({ erro: 'Email já cadastrado' });
-        else res.status(500).json({ erro: 'Erro interno' });
+        console.error('❌ ERRO NO REGISTRO:', error.message);
+        if (error.code === '23505') {
+            res.status(409).json({ erro: 'Email já cadastrado' });
+        } else {
+            res.status(500).json({ erro: 'Erro interno ao registrar' });
+        }
     }
 });
 
+// Login
 app.post('/api/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
-        if (!email || !senha) return res.status(400).json({ erro: 'Email e senha obrigatórios' });
 
-        const result = await pool.query('SELECT id, nome, email, telefone, senha_hash FROM usuarios WHERE email = $1', [email]);
-        if (result.rows.length === 0) return res.status(401).json({ erro: 'Credenciais inválidas' });
+        if (!email || !senha) {
+            return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+        }
+
+        const result = await pool.query(
+            'SELECT id, nome, email, telefone, senha_hash, created_at FROM usuarios WHERE email = $1',
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
 
         const usuario = result.rows[0];
         const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
-        if (!senhaValida) return res.status(401).json({ erro: 'Credenciais inválidas' });
 
-        const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET || 'dropset2025seguro!', { expiresIn: '7d' });
+        if (!senhaValida) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
+
+        const token = jwt.sign(
+            { id: usuario.id, email: usuario.email },
+            process.env.JWT_SECRET || 'dropset2025seguro!',
+            { expiresIn: '7d' }
+        );
+
         delete usuario.senha_hash;
-        res.json({ mensagem: 'Login realizado', usuario, token });
+
+        console.log('✅ Login realizado:', email);
+        res.json({ 
+            mensagem: 'Login realizado com sucesso',
+            usuario,
+            token
+        });
     } catch (error) {
-        console.error('ERRO LOGIN:', error.message);
-        res.status(500).json({ erro: 'Erro interno' });
+        console.error('❌ ERRO NO LOGIN:', error.message);
+        res.status(500).json({ erro: 'Erro interno ao fazer login' });
     }
 });
 
 // ==================== PRODUTOS (PÚBLICO) ====================
 
+// Listar produtos para o cliente (só estoque > 0)
 app.get('/api/produtos', async (req, res) => {
     try {
         const { q, categoria, id } = req.query;
+        
         let query = 'SELECT * FROM produtos WHERE estoque > 0';
         const values = [];
         let paramIndex = 1;
 
-        if (id) { query += ` AND id = $${paramIndex}`; values.push(id); paramIndex++; }
-        if (categoria) { query += ` AND categoria = $${paramIndex}`; values.push(categoria); paramIndex++; }
-        if (q) { query += ` AND (LOWER(nome) LIKE $${paramIndex} OR LOWER(descricao) LIKE $${paramIndex})`; values.push(`%${q.toLowerCase()}%`); paramIndex++; }
+        if (id) {
+            query += ` AND id = $${paramIndex}`;
+            values.push(id);
+            paramIndex++;
+        }
+
+        if (categoria) {
+            query += ` AND categoria = $${paramIndex}`;
+            values.push(categoria);
+            paramIndex++;
+        }
+
+        if (q) {
+            query += ` AND (LOWER(nome) LIKE $${paramIndex} OR LOWER(descricao) LIKE $${paramIndex})`;
+            values.push(`%${q.toLowerCase()}%`);
+            paramIndex++;
+        }
 
         query += ' ORDER BY nome ASC';
+        
         const result = await pool.query(query, values);
         res.json(result.rows);
     } catch (error) {
-        console.error('ERRO BUSCAR PRODUTOS:', error.message);
-        res.status(500).json({ erro: 'Erro ao buscar' });
+        console.error('❌ ERRO AO BUSCAR PRODUTOS:', error.message);
+        res.status(500).json({ erro: 'Erro ao buscar produtos' });
     }
 });
 
 // ==================== ADMIN (COM UPLOAD) ====================
 
+// 1. Listar TODOS os produtos (inclusive esgotados)
 app.get('/api/admin/produtos', verificarAdmin, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM produtos ORDER BY id DESC');
         res.json(result.rows);
     } catch (error) {
-        console.error('ERRO ADMIN LISTAR:', error.message);
-        res.status(500).json({ erro: 'Erro ao listar' });
+        console.error('❌ ERRO ADMIN LISTAR:', error.message);
+        res.status(500).json({ erro: 'Erro ao listar produtos' });
     }
 });
 
-// ROTA DE UPLOAD DE IMAGEM
+// 2. ROTA DE UPLOAD DE IMAGEM
 app.post('/api/admin/upload-imagem', verificarAdmin, upload.single('imagem'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ erro: 'Nenhuma imagem enviada' });
+        if (!req.file) {
+            return res.status(400).json({ erro: 'Nenhuma imagem enviada' });
+        }
 
         const fileName = `${Date.now()}-${req.file.originalname}`;
+        
         const { data, error } = await supabase.storage
             .from('produtos')
             .upload(fileName, req.file.buffer, {
@@ -178,12 +255,12 @@ app.post('/api/admin/upload-imagem', verificarAdmin, upload.single('imagem'), as
 
         res.json({ url: publicUrl });
     } catch (error) {
-        console.error('ERRO UPLOAD:', error.message);
+        console.error('❌ ERRO UPLOAD:', error.message);
         res.status(500).json({ erro: 'Erro ao fazer upload' });
     }
 });
 
-// CRIAR PRODUTO (ACEITA URL OU UPLOAD)
+// 3. Criar Produto
 app.post('/api/admin/produtos', verificarAdmin, async (req, res) => {
     try {
         const { nome, preco, preco_antigo, imagem_url, categoria, estoque, descricao } = req.body;
@@ -194,11 +271,12 @@ app.post('/api/admin/produtos', verificarAdmin, async (req, res) => {
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('ERRO CRIAR PRODUTO:', error.message);
-        res.status(500).json({ erro: 'Erro ao criar' });
+        console.error('❌ ERRO ADMIN CRIAR:', error.message);
+        res.status(500).json({ erro: 'Erro ao criar produto' });
     }
 });
 
+// 4. Atualizar Produto
 app.put('/api/admin/produtos/:id', verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -209,23 +287,29 @@ app.put('/api/admin/produtos/:id', verificarAdmin, async (req, res) => {
             [nome, preco, preco_antigo || null, imagem_url, categoria, estoque, descricao, id]
         );
         
-        if (result.rows.length === 0) return res.status(404).json({ erro: 'Produto não encontrado' });
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Produto não encontrado' });
+        }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('ERRO ATUALIZAR:', error.message);
-        res.status(500).json({ erro: 'Erro ao atualizar' });
+        console.error('❌ ERRO ADMIN ATUALIZAR:', error.message);
+        res.status(500).json({ erro: 'Erro ao atualizar produto' });
     }
 });
 
+// 5. Deletar Produto
 app.delete('/api/admin/produtos/:id', verificarAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query('DELETE FROM produtos WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) return res.status(404).json({ erro: 'Produto não encontrado' });
-        res.json({ mensagem: 'Produto deletado' });
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Produto não encontrado' });
+        }
+        res.json({ mensagem: 'Produto deletado com sucesso' });
     } catch (error) {
-        console.error('ERRO DELETAR:', error.message);
-        res.status(500).json({ erro: 'Erro ao deletar' });
+        console.error('❌ ERRO ADMIN DELETAR:', error.message);
+        res.status(500).json({ erro: 'Erro ao deletar produto' });
     }
 });
 
@@ -235,13 +319,16 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
     try {
         const { carrinho, total } = req.body;
         const userId = req.usuario.id;
+
         const result = await pool.query(
             'INSERT INTO pedidos (usuario_id, itens, total, status) VALUES ($1, $2, $3, $4) RETURNING *',
             [userId, JSON.stringify(carrinho), total, 'pendente']
         );
+
+        console.log('📦 Pedido criado:', result.rows[0].id);
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('ERRO PEDIDO:', error.message);
+        console.error('❌ ERRO AO CRIAR PEDIDO:', error.message);
         res.status(500).json({ erro: 'Erro ao criar pedido' });
     }
 });
@@ -249,20 +336,28 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
 app.get('/api/meus-pedidos', autenticarToken, async (req, res) => {
     try {
         const userId = req.usuario.id;
-        const result = await pool.query('SELECT * FROM pedidos WHERE usuario_id = $1 ORDER BY created_at DESC', [userId]);
+        
+        const result = await pool.query(
+            'SELECT * FROM pedidos WHERE usuario_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+
         res.json(result.rows);
     } catch (error) {
-        console.error('ERRO PEDIDOS:', error.message);
-        res.status(500).json({ erro: 'Erro ao buscar' });
+        console.error('❌ ERRO AO BUSCAR PEDIDOS:', error.message);
+        res.status(500).json({ erro: 'Erro ao buscar pedidos' });
     }
 });
 
-// ==================== PAGAMENTO ====================
+// ==================== PAGAMENTO MERCADO PAGO ====================
 
 app.post('/api/pagamento-multiplo', async (req, res) => {
     try {
         const { cart } = req.body;
-        if (!cart || cart.length === 0) return res.status(400).json({ erro: 'Carrinho vazio' });
+        
+        if (!cart || cart.length === 0) {
+            return res.status(400).json({ erro: 'Carrinho vazio' });
+        }
 
         const items = cart.map(item => ({
             title: item.nome,
@@ -283,15 +378,26 @@ app.post('/api/pagamento-multiplo', async (req, res) => {
 
         const preference = new Preference(client);
         const response = await preference.create({ body });
-        res.json({ id: response.id, link: response.init_point });
+        
+        console.log('✅ Pagamento gerado:', response.id);
+        res.json({ 
+            id: response.id,
+            link: response.init_point
+        });
     } catch (error) {
-        console.error('ERRO MP:', error.message);
-        res.status(500).json({ erro: 'Erro ao gerar pagamento' });
+        console.error('❌ ERRO MP:', error.message);
+        res.status(500).json({ 
+            erro: 'Erro ao gerar pagamento',
+            details: error.message
+        });
     }
 });
 
+// ==================== INICIALIZAÇÃO ====================
+
 app.listen(PORT, () => {
-    console.log('🔥 Servidor ativo na porta', PORT);
+    console.log('🔥 Servidor DropSet ativo na porta', PORT);
+    console.log('📡 Admin email: lucasteste@gmail.com');
     console.log('📦 Upload de imagens habilitado (Supabase Storage)');
 });
 
