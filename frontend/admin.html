@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DropSet - Painel Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --red: #DC2626; --dark: #0A0A0A; --card: #1A1A1A; --gray: #9CA3AF; --border: #2A2A2A; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--dark); color:#fff; font-family:'Inter',sans-serif; }
+        
+        header { background:rgba(10,10,10,0.95); padding:20px 0; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+        .container { max-width:1280px; margin:0 auto; padding:0 20px; }
+        .header-main { display:flex; align-items:center; justify-content:space-between; }
+        .logo { font-family:'Oswald',sans-serif; font-size:1.8rem; font-weight:700; }
+        .logo span { color:var(--red); }
+        .btn-back { color:var(--gray); text-decoration:none; display:flex; align-items:center; gap:8px; }
+        .btn-back:hover { color:#fff; }
+
+        .admin-content { padding:40px 0; }
+        .admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .admin-title { font-family:'Oswald',sans-serif; font-size:2rem; }
+        
+        .btn-add { background:var(--red); color:#fff; padding:12px 24px; border-radius:8px; border:none; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; transition:0.3s; }
+        .btn-add:hover { background:#b91c1c; transform:translateY(-2px); }
+
+        .table-container { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:15px; text-align:left; border-bottom:1px solid var(--border); }
+        th { background:rgba(255,255,255,0.05); font-weight:600; color:var(--gray); font-size:0.85rem; text-transform:uppercase; }
+        tr:last-child td { border-bottom:none; }
+        
+        .prod-img-thumb { width:50px; height:50px; object-fit:cover; border-radius:6px; background:#333; }
+        .actions { display:flex; gap:10px; }
+        .btn-edit { background:#3b82f6; color:#fff; padding:6px 12px; border-radius:4px; border:none; cursor:pointer; font-size:0.8rem; }
+        .btn-delete { background:#ef4444; color:#fff; padding:6px 12px; border-radius:4px; border:none; cursor:pointer; font-size:0.8rem; }
+        
+        /* Modal */
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(5px); }
+        .modal-overlay.active { display:flex; }
+        .modal-box { background:var(--card); border:1px solid var(--border); width:100%; max-width:500px; border-radius:16px; padding:30px; max-height:90vh; overflow-y:auto; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
+        .modal-title { font-family:'Oswald',sans-serif; font-size:1.5rem; }
+        .close-modal { background:none; border:none; color:#777; font-size:1.5rem; cursor:pointer; }
+        
+        .form-group { margin-bottom:15px; }
+        .form-group label { display:block; margin-bottom:5px; font-size:0.85rem; color:var(--gray); }
+        .form-input { width:100%; padding:12px; background:#0A0A0A; border:1px solid var(--border); color:#fff; border-radius:8px; font-family:'Inter',sans-serif; }
+        .form-input:focus { outline:none; border-color:var(--red); }
+        
+        /* Upload de Imagem */
+        .upload-container { border:2px dashed var(--border); border-radius:8px; padding:20px; text-align:center; transition:0.3s; cursor:pointer; }
+        .upload-container:hover { border-color:var(--red); background:rgba(220,38,38,0.05); }
+        .upload-container.has-image { border-style:solid; border-color:var(--red); }
+        .upload-preview { max-width:100%; max-height:150px; border-radius:8px; margin-top:10px; }
+        .upload-input { display:none; }
+        
+        .btn-save { width:100%; padding:14px; background:var(--red); color:#fff; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; margin-top:10px; }
+        .btn-save:hover { background:#b91c1c; }
+        .btn-save:disabled { background:#555; cursor:not-allowed; }
+
+        @media(max-width:768px) {
+            th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container header-main">
+            <a href="index.html" class="logo">DROP<span>SET</span> <small style="font-size:0.8rem; color:#777; font-family:'Inter';">ADMIN</small></a>
+            <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Voltar para Loja</a>
+        </div>
+    </header>
+
+    <div class="container admin-content">
+        <div class="admin-header">
+            <h1 class="admin-title">Gerenciar Produtos</h1>
+            <button class="btn-add" onclick="openModal()"><i class="fas fa-plus"></i> Novo Produto</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Preço</th>
+                        <th>Estoque</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                    <!-- Produtos via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Novo Produto</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prodId">
+                
+                <div class="form-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="prodName" class="form-input" required>
+                </div>
+                
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <label>Preço (R$)</label>
+                        <input type="number" step="0.01" id="prodPrice" class="form-input" required>
+                    </div>
+                    <div>
+                        <label>Preço Antigo (Opcional)</label>
+                        <input type="number" step="0.01" id="prodOldPrice" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Imagem do Produto</label>
+                    <div class="upload-container" id="uploadContainer" onclick="document.getElementById('prodImageFile').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--gray); margin-bottom:10px;"></i>
+                        <p style="color:var(--gray); font-size:0.85rem;">Clique para upload ou arraste uma imagem</p>
+                        <small style="color:#777; font-size:0.75rem;">PNG, JPG até 5MB</small>
+                        <img id="imagePreview" class="upload-preview" style="display:none;">
+                    </div>
+                    <input type="file" id="prodImageFile" class="upload-input" accept="image/*" onchange="handleImageSelect(event)">
+                    <input type="hidden" id="prodImageUrl">
+                </div>
+
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <label>Categoria</label>
+                        <select id="prodCategory" class="form-input" required>
+                            <option value="Proteínas">Proteínas</option>
+                            <option value="Creatina">Creatina</option>
+                            <option value="Pré-Treino">Pré-Treino</option>
+                            <option value="Mass Gainer">Mass Gainer</option>
+                            <option value="Vitaminas">Vitaminas</option>
+                            <option value="Roupas">Roupas</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Estoque</label>
+                        <input type="number" id="prodStock" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição (Benefícios)</label>
+                    <textarea id="prodDesc" class="form-input" rows="4" placeholder="Ex: Queima gordura&#10;Aumenta energia"></textarea>
+                </div>
+
+                <button type="submit" class="btn-save" id="btnSave">Salvar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://dropset-backend.onrender.com';
+        let products = [];
+        let selectedFile = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('dropset_token');
+            if (!token) {
+                alert('Você precisa estar logado como administrador.');
+                window.location.href = 'index.html';
+                return;
+            }
+            loadProducts(token);
+        });
+
+        async function loadProducts(token) {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/produtos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) throw new Error('Não autorizado');
+                
+                products = await res.json();
+                renderTable();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro ao carregar ou acesso negado.</td></tr>';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${p.imagem_url}" alt="${p.nome}" class="prod-img-thumb" onerror="this.src='https://via.placeholder.com/50'"></td>
+                    <td>${p.nome}</td>
+                    <td>${p.categoria}</td>
+                    <td>R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</td>
+                    <td>${p.estoque}</td>
+                    <td class="actions">
+                        <button class="btn-edit" onclick='editProduct(${JSON.stringify(p)})'><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openModal(isEdit = false) {
+            document.getElementById('productModal').classList.add('active');
+            document.getElementById('modalTitle').textContent = isEdit ? 'Editar Produto' : 'Novo Produto';
+            if (!isEdit) {
+                document.getElementById('productForm').reset();
+                document.getElementById('prodId').value = '';
+                document.getElementById('prodImageUrl').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('uploadContainer').classList.remove('has-image');
+                selectedFile = null;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Imagem muito grande. Máximo 5MB.');
+                return;
+            }
+
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('imagePreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                document.getElementById('uploadContainer').classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadImage(file) {
+            const token = localStorage.getItem('dropset_token');
+            const formData = new FormData();
+            formData.append('imagem', file);
+
+            const res = await fetch(`${API_URL}/api/admin/upload-imagem`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('Erro no upload');
+            const data = await res.json();
+            return data.url;
+        }
+
+        function editProduct(product) {
+            document.getElementById('prodId').value = product.id;
+            document.getElementById('prodName').value = product.nome;
+            document.getElementById('prodPrice').value = product.preco;
+            document.getElementById('prodOldPrice').value = product.preco_antigo || '';
+            document.getElementById('prodImageUrl').value = product.imagem_url;
+            document.getElementById('prodCategory').value = product.categoria;
+            document.getElementById('prodStock').value = product.estoque;
+            document.getElementById('prodDesc').value = product.descricao || '';
+            
+            // Preview da imagem existente
+            const preview = document.getElementById('imagePreview');
+            preview.src = product.imagem_url;
+            preview.style.display = 'block';
+            document.getElementById('uploadContainer').classList.add('has-image');
+            
+            openModal(true);
+        }
+
+        async function saveProduct(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('dropset_token');
+            const id = document.getElementById('prodId').value;
+            const btnSave = document.getElementById('btnSave');
+            
+            try {
+                let imageUrl = document.getElementById('prodImageUrl').value;
+                
+                // Se tem nova imagem selecionada, faz upload
+                if (selectedFile) {
+                    btnSave.disabled = true;
+                    btnSave.textContent = 'Enviando imagem...';
+                    imageUrl = await uploadImage(selectedFile);
+                }
+
+                const data = {
+                    nome: document.getElementById('prodName').value,
+                    preco: parseFloat(document.getElementById('prodPrice').value),
+                    preco_antigo: document.getElementById('prodOldPrice').value || null,
+                    imagem_url: imageUrl,
+                    categoria: document.getElementById('prodCategory').value,
+                    estoque: parseInt(document.getElementById('prodStock').value),
+                    descricao: document.getElementById('prodDesc').value
+                };
+
+                let url = `${API_URL}/api/admin/produtos`;
+                let method = 'POST';
+                
+                if (id) {
+                    url += `/${id}`;
+                    method = 'PUT';
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) throw new Error('Erro ao salvar');
+
+                closeModal();
+                loadProducts(token);
+                alert(id ? 'Produto atualizado!' : 'Produto criado!');
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao salvar produto.');
+            } finally {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Salvar Produto';
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            
+            const token = localStorage.getItem('dropset_token');
+            try {
+                const res = await fetch(`${API_URL}/api/admin/produtos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Erro ao deletar');
+                
+                loadProducts(token);
+                alert('Produto excluído!');
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao excluir produto.');
+            }
+        }
+    </script>
+</body>
+</html>
