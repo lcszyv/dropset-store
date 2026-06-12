@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">DropSet - Produto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #DC2626; --red-light: #EF4444; --red-dark: #991B1B;
+            --dark: #0A0A0A; --card: #1A1A1A; --gray: #9CA3AF; --border: #2A2A2A;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--dark); color:#fff; font-family:'Inter',sans-serif; }
+        a { text-decoration:none; color:inherit; transition:0.3s; }
+        
+        header { background:rgba(10,10,10,0.95); backdrop-filter:blur(20px); padding:20px 0; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1000; }
+        .container { max-width:1280px; margin:0 auto; padding:0 20px; }
+        .header-main { display:flex; align-items:center; justify-content:space-between; }
+        .logo { font-family:'Oswald',sans-serif; font-size:1.8rem; font-weight:700; }
+        .logo span { background:linear-gradient(135deg, var(--red-light), var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .back-link { color:var(--gray); display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:600; }
+        .back-link:hover { color:var(--red); }
+
+        .product-page { padding:60px 0; min-height:80vh; }
+        .product-grid { display:grid; grid-template-columns: 1fr 1fr; gap:50px; align-items:start; }
+        
+        .product-image { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:30px; display:flex; align-items:center; justify-content:center; min-height:400px; }
+        .product-image img { max-height:350px; max-width:100%; object-fit:contain; }
+        
+        .product-info { display:flex; flex-direction:column; gap:15px; }
+        .product-category { font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--red-light); letter-spacing:1px; }
+        .product-title { font-family:'Oswald',sans-serif; font-size:2.2rem; text-transform:uppercase; line-height:1.1; }
+        .product-price { font-size:2rem; font-weight:800; color:var(--red-light); font-family:'Oswald',sans-serif; }
+        .product-old-price { text-decoration:line-through; color:var(--gray); font-size:1rem; font-weight:400; margin-left:10px; }
+        
+        .btn-add { padding:16px 32px; background:linear-gradient(135deg, var(--red), var(--red-dark)); color:#fff; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; transition:0.3s; text-transform:uppercase; letter-spacing:0.5px; margin-top:10px; }
+        .btn-add:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(220,38,38,0.4); }
+        .btn-add:disabled { background:#555; cursor:not-allowed; transform:none; }
+
+        .description-section { margin-top:60px; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:30px; }
+        .description-section h3 { font-family:'Oswald',sans-serif; font-size:1.3rem; text-transform:uppercase; margin-bottom:15px; color:var(--red-light); }
+        .description-section ul { list-style:none; padding-left:0; }
+        .description-section ul li { padding:8px 0; border-bottom:1px solid var(--border); color:var(--gray); font-size:0.95rem; display:flex; align-items:center; gap:10px; }
+        .description-section ul li:last-child { border-bottom:none; }
+        .description-section ul li i { color:var(--red); font-size:0.8rem; }
+
+        .loading-state { text-align:center; padding:100px 0; color:var(--gray); }
+
+        @media(max-width:768px) {
+            .product-grid { grid-template-columns:1fr; gap:30px; }
+            .product-title { font-size:1.6rem; }
+            .product-image { min-height:300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container header-main">
+            <a href="index.html" class="logo">DROP<span>SET</span></a>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para Loja</a>
+        </div>
+    </header>
+
+    <div class="container product-page">
+        <div id="productContainer" class="loading-state">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:2rem; margin-bottom:15px;"></i>
+            <p>Carregando produto...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://dropset-backend.onrender.com';
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        async function loadProduct() {
+            const container = document.getElementById('productContainer');
+            
+            if (!productId) {
+                container.innerHTML = '<p style="text-align:center; padding:100px 0;">Produto não encontrado.</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/produtos?id=${productId}`);
+                const produtos = await res.json();
+                const produto = produtos.find(p => p.id == productId);
+
+                if (!produto) {
+                    container.innerHTML = '<p style="text-align:center; padding:100px 0;">Produto não encontrado.</p>';
+                    return;
+                }
+
+                document.title = `${produto.nome} - DropSet`;
+                
+                const temOferta = produto.preco_antigo && produto.preco_antigo > produto.preco;
+                const descricao = produto.descricao || 'Informações detalhadas em breve.';
+                
+                // Converte descrição em lista se tiver quebras de linha ou pontos
+                const beneficios = descricao.includes('\n') || descricao.includes('•') || descricao.includes('-') 
+                    ? descricao.split(/[\n•-]+/).filter(l => l.trim().length > 0)
+                    : [descricao];
+
+                let listaHTML = beneficios.map(item => `<li><i class="fas fa-check-circle"></i> ${item.trim()}</li>`).join('');
+
+                container.innerHTML = `
+                    <div class="product-grid">
+                        <div class="product-image">
+                            <img src="${produto.imagem_url || ''}" alt="${produto.nome}" onerror="this.src='https://via.placeholder.com/400x400/1a1a1a/555?text=Sem+Imagem'">
+                        </div>
+                        <div class="product-info">
+                            <span class="product-category">${produto.categoria || 'Suplemento'}</span>
+                            <h1 class="product-title">${produto.nome}</h1>
+                            <div>
+                                <span class="product-price">R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}</span>
+                                ${temOferta ? `<span class="product-old-price">R$ ${Number(produto.preco_antigo).toFixed(2).replace('.', ',')}</span>` : ''}
+                            </div>
+                            <button class="btn-add" onclick="addToCartFromDetail('${produto.nome.replace(/'/g, "\\'")}', ${produto.preco}, '${produto.imagem_url || ''}', ${produto.estoque})">
+                                <i class="fas fa-shopping-cart"></i> Adicionar ao Carrinho
+                            </button>
+                            ${produto.estoque < 1 ? '<p style="color:#ef4444; font-weight:600; margin-top:5px;">Produto esgotado</p>' : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="description-section">
+                        <h3>Descrição</h3>
+                        <ul>${listaHTML}</ul>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<p style="text-align:center; padding:100px 0; color:#ef4444;">Erro ao carregar produto.</p>';
+            }
+        }
+
+        function addToCartFromDetail(nome, preco, img, estoque) {
+            if (estoque < 1) return alert('Produto esgotado!');
+            let cart = JSON.parse(localStorage.getItem('dropset_cart')) || [];
+            const existing = cart.find(item => item.nome === nome);
+            if (existing) { existing.quantidade++; } 
+            else { cart.push({ nome, preco: Number(preco), img, quantidade: 1 }); }
+            localStorage.setItem('dropset_cart', JSON.stringify(cart));
+            
+            // Feedback visual
+            const btn = document.querySelector('.btn-add');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Adicionado!';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+                window.open('index.html#cart', '_self');
+            }, 1500);
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>

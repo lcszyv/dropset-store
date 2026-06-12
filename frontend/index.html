@@ -357,53 +357,12 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 .aba-conteudo.active { display:block; }
 
 /* Estilos dos Itens do Pedido */
-.order-items {
-    margin: 10px 0 12px;
-    padding-left: 0;
-}
-.order-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid #222;
-    font-size: 0.8rem;
-    color: #ccc;
-}
+.order-items { margin: 10px 0 12px; padding-left: 0; }
+.order-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.8rem; color: #ccc; }
 .order-item:last-child { border-bottom: none; }
-.order-item-qty {
-    background: #333;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    color: var(--red-light);
-    font-weight: 700;
-    min-width: 24px;
-    text-align: center;
-}
-
-/* Botão Comprar Novamente */
-.btn-reorder {
-    width: 100%;
-    margin-top: 8px;
-    padding: 8px;
-    background: rgba(220,38,38,0.15);
-    border: 1px solid var(--red);
-    color: var(--red-light);
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-.btn-reorder:hover {
-    background: var(--red);
-    color: #fff;
-}
+.order-item-qty { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; color: var(--red-light); font-weight: 700; min-width: 24px; text-align: center; }
+.btn-reorder { width: 100%; margin-top: 8px; padding: 8px; background: rgba(220,38,38,0.15); border: 1px solid var(--red); color: var(--red-light); border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-reorder:hover { background: var(--red); color: #fff; }
 
 /* Ajuste Mobile */
 @media(max-width: 1024px) {
@@ -589,7 +548,7 @@ footer { background:#111; padding:60px 0 30px; border-top:1px solid var(--border
 <section class="brands-section"><div class="brands-title reveal">Marcas que confiamos</div><div class="marquee"><div class="marquee-item">DROPSET</div><span class="marquee-divider">◆</span><div class="marquee-item">OPTIMUM</div><span class="marquee-divider">◆</span><div class="marquee-item">DUX</div><span class="marquee-divider">◆</span><div class="marquee-item">INTEGRALMÉDICA</div><span class="marquee-divider">◆</span><div class="marquee-item">GROWTH</div><span class="marquee-divider">◆</span><div class="marquee-item">MAX TITANIUM</div><span class="marquee-divider">◆</span><div class="marquee-item">BLACK SKULL</div><span class="marquee-divider">◆</span><div class="marquee-item">DROPSET</div><span class="marquee-divider">◆</span><div class="marquee-item">OPTIMUM</div><span class="marquee-divider">◆</span><div class="marquee-item">DUX</div><span class="marquee-divider">◆</span><div class="marquee-item">INTEGRALMÉDICA</div><span class="marquee-divider">◆</span><div class="marquee-item">GROWTH</div><span class="marquee-divider">◆</span><div class="marquee-item">MAX TITANIUM</div><span class="marquee-divider">◆</span><div class="marquee-item">BLACK SKULL</div><span class="marquee-divider">◆</span></div></section>
 
 <section class="container newsletter-section reveal">
-<div class="newsletter-box"><h2> RECEBA OFERTAS EXCLUSIVAS</h2><p>Cadastre-se e ganhe 10% de desconto!</p><form class="newsletter-form" onsubmit="return false;"><input type="email" placeholder="Seu melhor e-mail..."><button type="submit">CADASTRAR</button></form></div>
+<div class="newsletter-box"><h2>🔥 RECEBA OFERTAS EXCLUSIVAS</h2><p>Cadastre-se e ganhe 10% de desconto!</p><form class="newsletter-form" onsubmit="return false;"><input type="email" placeholder="Seu melhor e-mail..."><button type="submit">CADASTRAR</button></form></div>
 </section>
 
 <footer>
@@ -816,28 +775,30 @@ function handleImageError(imgElement) {
 function criarCard(produto) {
     const temOferta = produto.preco_antigo && produto.preco_antigo > produto.preco;
     return `
-    <div class="product-card reveal">
-        ${temOferta ? '<span class="prod-tag offer">OFERTA</span>' : ''}
-        ${produto.estoque < 10 && produto.estoque > 0 ? '<span class="prod-tag hot">RESTAM '+produto.estoque+'</span>' : ''}
-        <div class="prod-fav" onclick="toggleFav(this)"><i class="far fa-heart"></i></div>
-        <div class="prod-img">
-            <img src="${produto.imagem_url || ''}" alt="${produto.nome}" onerror="handleImageError(this)">
-        </div>
-        <div class="prod-info">
-            <h4>${produto.nome}</h4>
-            <div class="prod-price">
-                ${temOferta ? `<span class="price-old">${formatarPreco(produto.preco_antigo)}</span><br>` : ''}
-                <span class="price-new">${formatarPreco(produto.preco)}</span>
-                ${produto.estoque > 0 ? `<div class="installments">3x de ${formatarPreco(produto.preco/3).replace('R$ ','')} sem juros</div>` : ''}
+    <a href="produto.html?id=${produto.id}" style="text-decoration:none; color:inherit; display:block;">
+        <div class="product-card reveal">
+            ${temOferta ? '<span class="prod-tag offer">OFERTA</span>' : ''}
+            ${produto.estoque < 10 && produto.estoque > 0 ? '<span class="prod-tag hot">RESTAM '+produto.estoque+'</span>' : ''}
+            <div class="prod-fav" onclick="event.preventDefault(); event.stopPropagation(); toggleFav(this)"><i class="far fa-heart"></i></div>
+            <div class="prod-img">
+                <img src="${produto.imagem_url || ''}" alt="${produto.nome}" onerror="handleImageError(this)">
             </div>
-            ${produto.estoque > 0 
-                ? `<button class="btn-add-cart" onclick="addToCart('${produto.nome.replace(/'/g, "\\'")}', ${produto.preco}, '${produto.imagem_url}')">
-                    <i class="fas fa-shopping-cart"></i> ADICIONAR
-                   </button>`
-                : `<button class="btn-add-cart" style="background:#555;cursor:not-allowed" disabled><i class="fas fa-times"></i> ESGOTADO</button>`
-            }
+            <div class="prod-info">
+                <h4>${produto.nome}</h4>
+                <div class="prod-price">
+                    ${temOferta ? `<span class="price-old">${formatarPreco(produto.preco_antigo)}</span><br>` : ''}
+                    <span class="price-new">${formatarPreco(produto.preco)}</span>
+                    ${produto.estoque > 0 ? `<div class="installments">3x de ${formatarPreco(produto.preco/3).replace('R$ ','')} sem juros</div>` : ''}
+                </div>
+                ${produto.estoque > 0 
+                    ? `<button class="btn-add-cart" onclick="event.preventDefault(); event.stopPropagation(); addToCart('${produto.nome.replace(/'/g, "\\'")}', ${produto.preco}, '${produto.imagem_url}')">
+                        <i class="fas fa-shopping-cart"></i> ADICIONAR
+                       </button>`
+                    : `<button class="btn-add-cart" style="background:#555;cursor:not-allowed" disabled><i class="fas fa-times"></i> ESGOTADO</button>`
+                }
+            </div>
         </div>
-    </div>`;
+    </a>`;
 }
 
 async function carregarProdutos(busca, categoria, titulo) {
@@ -892,14 +853,12 @@ const searchInput = document.getElementById('searchInput');
 let searchTimer;
 
 function filterByCategory(categoria) {
-    // Atualiza a URL sem recarregar para ficar bonito
     const newUrl = new URL(window.location);
     newUrl.searchParams.set('cat', categoria);
     window.history.pushState({}, '', newUrl);
 
     carregarProdutos(null, categoria, `Categoria: <span>${categoria}</span>`);
     
-    // Rola até os produtos
     const grid = document.getElementById('productGrid');
     if(grid) {
         window.scrollTo({ top: grid.offsetTop - 100, behavior: 'smooth' });
@@ -910,13 +869,11 @@ function resetFilters() {
     window.location.href = 'index.html';
 }
 
-// Busca por Input
 searchInput.addEventListener('input', (e) => {
     clearTimeout(searchTimer);
     const termo = e.target.value.trim();
     
     if (termo.length === 0) {
-        // Se limpar a busca, volta ao estado inicial (ou categoria se houver)
         const params = new URLSearchParams(window.location.search);
         if(params.get('cat')) {
              filterByCategory(params.get('cat'));
@@ -1039,11 +996,9 @@ document.querySelectorAll('.nav-link[data-categoria]').forEach(link => {
     });
 });
 
-// Carregar ao iniciar a página
 document.addEventListener('DOMContentLoaded', () => {
     verificarSessao();
     
-    // Verifica se veio de um link de categoria (?cat=...)
     const params = new URLSearchParams(window.location.search);
     const catParam = params.get('cat');
     
@@ -1214,7 +1169,7 @@ async function realizarLogin(e) {
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginSenha').value = '';
         } else { showToast(data.erro || 'Erro ❌'); }
-    } catch (erro) { showToast('Erro de conexão '); }
+    } catch (erro) { showToast('Erro de conexão ❌'); }
     finally { btn.textContent = 'Entrar'; btn.disabled = false; }
 }
 
@@ -1235,7 +1190,7 @@ async function realizarCadastro(e) {
         if (res.ok) {
             localStorage.setItem('dropset_token', data.token);
             localStorage.setItem('dropset_user', JSON.stringify(data.usuario));
-            showToast('Conta criada! ');
+            showToast('Conta criada! 🎉');
             closeModals(); verificarSessao();
         } else { showToast(data.erro || 'Erro ❌'); }
     } catch (erro) { showToast('Erro de conexão '); }
@@ -1332,7 +1287,6 @@ async function carregarPedidos() {
             
             const itens = typeof p.itens === 'string' ? JSON.parse(p.itens) : p.itens;
             
-            // Monta a lista de produtos
             let itensHTML = '';
             itens.forEach(item => {
                 const nomeCurto = item.nome.length > 25 ? item.nome.substring(0, 25) + '...' : item.nome;
@@ -1370,7 +1324,6 @@ async function carregarPedidos() {
     }
 }
 
-// Função para recuperar itens do pedido para o carrinho
 function reorderItems(itens) {
     itens.forEach(item => {
         const existing = cart.find(c => c.nome === item.nome);
@@ -1388,7 +1341,7 @@ function reorderItems(itens) {
     saveCart();
     updateCartIcon();
     showToast('Itens adicionados ao carrinho! 🛒');
-    toggleCart(); // Abre o carrinho automaticamente
+    toggleCart();
 }
 </script>
 </body>
