@@ -99,7 +99,6 @@
                 const temOferta = produto.preco_antigo && produto.preco_antigo > produto.preco;
                 const descricao = produto.descricao || 'Informações detalhadas em breve.';
                 
-                // Converte descrição em lista se tiver quebras de linha ou pontos
                 const beneficios = descricao.includes('\n') || descricao.includes('•') || descricao.includes('-') 
                     ? descricao.split(/[\n•-]+/).filter(l => l.trim().length > 0)
                     : [descricao];
@@ -144,7 +143,6 @@
             else { cart.push({ nome, preco: Number(preco), img, quantidade: 1 }); }
             localStorage.setItem('dropset_cart', JSON.stringify(cart));
             
-            // Feedback visual
             const btn = document.querySelector('.btn-add');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Adicionado!';
