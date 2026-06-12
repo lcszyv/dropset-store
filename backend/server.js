@@ -155,24 +155,34 @@ function autenticarToken(req, res, next) {
 
 // ==================== PRODUTOS ====================
 
-// Listar produtos
+// Listar produtos (Agora com suporte a ID para página de detalhes)
 app.get('/api/produtos', async (req, res) => {
     try {
-        const { q, categoria } = req.query;
+        const { q, categoria, id } = req.query;
         
-        console.log('🔍 Recebido request:', { q, categoria });
+        console.log('🔍 Recebido request:', { q, categoria, id });
 
         let query = 'SELECT * FROM produtos WHERE estoque > 0';
         const values = [];
+        let paramIndex = 1;
+
+        if (id) {
+            query += ` AND id = $${paramIndex}`;
+            values.push(id);
+            paramIndex++;
+        }
 
         if (categoria) {
-            query += ' AND categoria = $1';
+            query += ` AND categoria = $${paramIndex}`;
             values.push(categoria);
+            paramIndex++;
         }
 
         if (q) {
-            query += ` AND (LOWER(nome) LIKE $${values.length + 1} OR LOWER(descricao) LIKE $${values.length + 1})`;
+            // Verifica se a coluna 'descricao' existe no banco
+            query += ` AND (LOWER(nome) LIKE $${paramIndex} OR LOWER(descricao) LIKE $${paramIndex})`;
             values.push(`%${q.toLowerCase()}%`);
+            paramIndex++;
         }
 
         query += ' ORDER BY nome ASC';
@@ -203,7 +213,7 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
             [userId, JSON.stringify(carrinho), total, 'pendente']
         );
 
-        console.log('📦 Pedido criado:', result.rows[0].id);
+        console.log(' Pedido criado:', result.rows[0].id);
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('❌ ERRO AO CRIAR PEDIDO:', error.message);
@@ -267,7 +277,7 @@ app.post('/api/pagamento-multiplo', async (req, res) => {
             link: response.init_point
         });
     } catch (error) {
-        console.error('❌ ERRO MP:', error.message);
+        console.error(' ERRO MP:', error.message);
         res.status(500).json({ 
             erro: 'Erro ao gerar pagamento',
             details: error.message
@@ -291,7 +301,7 @@ app.post('/api/webhook-mp', async (req, res) => {
                 [status, paymentData.id, paymentData.order_id]
             );
 
-            console.log(`💰 Pagamento ${paymentData.id} atualizado para: ${status}`);
+            console.log(` Pagamento ${paymentData.id} atualizado para: ${status}`);
         }
 
         res.status(200).send('OK');
